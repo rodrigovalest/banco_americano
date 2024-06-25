@@ -1,9 +1,9 @@
 spring:
   application:
-    name: ms-costumer
+    name: ms-payment
 
   datasource:
-    url: jdbc:mysql://localhost:13000/dbmscostumer
+    url: jdbc:mysql://localhost:13002/dbmspayment
     username: 123mudar
     password: 123mudar
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -13,4 +13,5 @@ spring:
       ddl-auto: update
 
 server:
-  port: 18001
+  port: 18002
+
