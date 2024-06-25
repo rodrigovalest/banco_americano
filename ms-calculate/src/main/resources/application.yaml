@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: ms-calculate
+
+  datasource:
+    url: jdbc:mysql://localhost:13001/dbmscalculate
+    username: 123mudar
+    password: 123mudar
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+server:
+  port: 18000
+
