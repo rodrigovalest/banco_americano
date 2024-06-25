@@ -1,6 +1,7 @@
 services:
   db-mscostumer:
-    image: mysql
+    image: mysql:8.4
+    container_name: db-mscostumer
     ports:
       - '13000:3306'
     environment:
@@ -10,7 +11,8 @@ services:
       MYSQL_DATABASE: dbmscostumer
 
   db-mscalculate:
-    image: mysql
+    image: mysql:8.4
+    container_name: db-mscalculate
     ports:
       - '13001:3306'
     environment:
@@ -20,7 +22,8 @@ services:
       MYSQL_DATABASE: dbmscalculate
 
   db-mspayment:
-    image: mysql
+    image: mysql:8.4
+    container_name: db-mspayment
     ports:
       - '13002:3306'
     environment:
@@ -28,3 +31,13 @@ services:
       MYSQL_USER: 123mudar
       MYSQL_PASSWORD: 123mudar
       MYSQL_DATABASE: dbmspayment
+
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: user
+      RABBITMQ_DEFAULT_PASS: password
