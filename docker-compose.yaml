@@ -1,0 +1,30 @@
+services:
+  db-mscostumer:
+    image: mysql
+    ports:
+      - '13000:3306'
+    environment:
+      MYSQL_ROOT_PASSWORD: 123mudar
+      MYSQL_USER: 123mudar
+      MYSQL_PASSWORD: 123mudar
+      MYSQL_DATABASE: dbmscostumer
+
+  db-mscalculate:
+    image: mysql
+    ports:
+      - '13001:3306'
+    environment:
+      MYSQL_ROOT_PASSWORD: 123mudar
+      MYSQL_USER: 123mudar
+      MYSQL_PASSWORD: 123mudar
+      MYSQL_DATABASE: dbmscalculate
+
+  db-mspayment:
+    image: mysql
+    ports:
+      - '13002:3306'
+    environment:
+      MYSQL_ROOT_PASSWORD: 123mudar
+      MYSQL_USER: 123mudar
+      MYSQL_PASSWORD: 123mudar
+      MYSQL_DATABASE: dbmspayment
