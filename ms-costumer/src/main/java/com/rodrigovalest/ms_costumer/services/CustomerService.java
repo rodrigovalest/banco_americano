@@ -2,6 +2,7 @@ package com.rodrigovalest.ms_costumer.services;
 
 import com.rodrigovalest.ms_costumer.exceptions.CpfAlreadyRegisteredException;
 import com.rodrigovalest.ms_costumer.exceptions.EmailAlreadyRegistedException;
+import com.rodrigovalest.ms_costumer.exceptions.EntityNotFoundException;
 import com.rodrigovalest.ms_costumer.exceptions.InvalidCpfException;
 import com.rodrigovalest.ms_costumer.models.entities.Customer;
 import com.rodrigovalest.ms_costumer.repositories.CustomerRepository;
@@ -25,6 +26,13 @@ public class CustomerService {
             throw new EmailAlreadyRegistedException("Email already registered");
 
         return this.customerRepository.save(customer);
+    }
+
+    @Transactional(readOnly = true)
+    public Customer findById(Long id) {
+        return this.customerRepository.findById(id).orElseThrow(
+                () -> new EntityNotFoundException("customer with id {" + id + "} not found")
+        );
     }
 
     public static boolean validateCpf(String cpf) {

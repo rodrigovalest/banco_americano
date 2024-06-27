@@ -2,6 +2,7 @@ package com.rodrigovalest.ms_costumer.web.exceptions;
 
 import com.rodrigovalest.ms_costumer.exceptions.CpfAlreadyRegisteredException;
 import com.rodrigovalest.ms_costumer.exceptions.EmailAlreadyRegistedException;
+import com.rodrigovalest.ms_costumer.exceptions.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -28,9 +29,7 @@ public class RestExceptionHandler {
     }
 
     @ExceptionHandler(RuntimeException.class)
-    private ResponseEntity<RestErrorMessage> runtimeExceptionHandler(
-            RuntimeException e
-    ) {
+    private ResponseEntity<RestErrorMessage> runtimeExceptionHandler(RuntimeException e) {
         log.info(String.valueOf(e.getCause()) + " | " + e.getMessage());
 
         RestErrorMessage restErrorMessage = new RestErrorMessage(HttpStatus.INTERNAL_SERVER_ERROR, "something went wrong");
@@ -41,9 +40,7 @@ public class RestExceptionHandler {
     }
 
     @ExceptionHandler(CpfAlreadyRegisteredException.class)
-    private ResponseEntity<RestErrorMessage> cpfAlreadyRegisteredExceptionHandler(
-            CpfAlreadyRegisteredException e
-    ) {
+    private ResponseEntity<RestErrorMessage> cpfAlreadyRegisteredExceptionHandler(CpfAlreadyRegisteredException e) {
         RestErrorMessage restErrorMessage = new RestErrorMessage(HttpStatus.UNPROCESSABLE_ENTITY, e.getMessage());
         return ResponseEntity
                 .status(HttpStatus.UNPROCESSABLE_ENTITY)
@@ -52,12 +49,21 @@ public class RestExceptionHandler {
     }
 
     @ExceptionHandler(EmailAlreadyRegistedException.class)
-    private ResponseEntity<RestErrorMessage> emailAlreadyRegistedExceptionHandler(
-            EmailAlreadyRegistedException e
-    ) {
+    private ResponseEntity<RestErrorMessage> emailAlreadyRegistedExceptionHandler(EmailAlreadyRegistedException e) {
         RestErrorMessage restErrorMessage = new RestErrorMessage(HttpStatus.UNPROCESSABLE_ENTITY, e.getMessage());
         return ResponseEntity
                 .status(HttpStatus.UNPROCESSABLE_ENTITY)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(restErrorMessage);
+    }
+
+    @ExceptionHandler(EntityNotFoundException.class)
+    private ResponseEntity<RestErrorMessage> entityNotFoundExceptionHandler(EntityNotFoundException e) {
+        RestErrorMessage restErrorMessage = new RestErrorMessage(
+                HttpStatus.NOT_FOUND, e.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(restErrorMessage);
     }
