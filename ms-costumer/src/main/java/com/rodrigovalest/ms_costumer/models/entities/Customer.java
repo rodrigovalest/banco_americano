@@ -6,21 +6,19 @@ import lombok.*;
 
 import java.time.LocalDate;
 
-@EqualsAndHashCode
-@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
 @Entity
-@Table(name = "tb_costumers")
-public class Costumer {
+@Table(name = "tb_customers")
+public class Customer {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "cpf", nullable = false)
+    @Column(name = "cpf", nullable = false, length = 14, unique = true)
     private String cpf;
 
     @Column(name = "name", nullable = false)
@@ -33,7 +31,7 @@ public class Costumer {
     @Column(name = "birthdate", nullable = false)
     private LocalDate birthdate;
 
-    @Column(name = "email", nullable = false)
+    @Column(name = "email", nullable = false, unique = true)
     private String email;
 
     @Column(name = "points")
