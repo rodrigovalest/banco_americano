@@ -4,6 +4,7 @@ import com.rodrigovalest.ms_costumer.models.entities.Customer;
 import com.rodrigovalest.ms_costumer.models.enums.GenderEnum;
 import com.rodrigovalest.ms_costumer.web.dtos.mapper.CustomerMapper;
 import com.rodrigovalest.ms_costumer.web.dtos.request.CreateCustomerDto;
+import com.rodrigovalest.ms_costumer.web.dtos.response.CustomerResponseDto;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -12,7 +13,7 @@ import java.time.LocalDate;
 public class CustomerMapperTest {
 
     @Test
-    public void fromCreateCustomerDto_WithValidMaleCustomer_ReturnCustomer() {
+    public void toModelFromCreateCustomerDto_WithValidMaleCustomer_ReturnCustomer() {
         CreateCustomerDto createCustomerDto = new CreateCustomerDto(
                 "499.130.480-60",
                 "Roger",
@@ -22,7 +23,7 @@ public class CustomerMapperTest {
                 "photobase64"
         );
 
-        Customer sut = CustomerMapper.fromDto(createCustomerDto);
+        Customer sut = CustomerMapper.toModel(createCustomerDto);
 
         Assertions.assertThat(sut).isNotNull();
         Assertions.assertThat(sut.getId()).isEqualTo(null);
@@ -34,7 +35,7 @@ public class CustomerMapperTest {
     }
 
     @Test
-    public void fromCreateCustomerDto_WithValidFemaleCustomer_ReturnCustomer() {
+    public void toModelFromCreateCustomerDto_WithValidFemaleCustomer_ReturnCustomer() {
         CreateCustomerDto createCustomerDto = new CreateCustomerDto(
                 "499.130.480-60",
                 "Maria",
@@ -44,7 +45,7 @@ public class CustomerMapperTest {
                 "photobase64"
         );
 
-        Customer sut = CustomerMapper.fromDto(createCustomerDto);
+        Customer sut = CustomerMapper.toModel(createCustomerDto);
 
         Assertions.assertThat(sut).isNotNull();
         Assertions.assertThat(sut.getId()).isEqualTo(null);
@@ -53,5 +54,41 @@ public class CustomerMapperTest {
         Assertions.assertThat(sut.getName()).isEqualTo(createCustomerDto.getName());
         Assertions.assertThat(sut.getEmail()).isEqualTo(createCustomerDto.getEmail());
         Assertions.assertThat(sut.getGender()).isEqualTo(GenderEnum.FEMALE);
+    }
+
+    @Test
+    public void toDto_WithValidFemaleCustomer_ReturnsCustomerResponseDto() {
+        // Arrange
+        Customer customer = new Customer(1L, "499.130.480-60", "Maria", GenderEnum.FEMALE, LocalDate.of(1990, 1, 1), "maria@example.com", 100L, "http://example.com/photo.jpg");
+
+        // Act
+        CustomerResponseDto sut = CustomerMapper.toDto(customer);
+
+        // Assert
+        Assertions.assertThat(sut).isNotNull();
+        Assertions.assertThat(sut.getName()).isEqualTo(customer.getName());
+        Assertions.assertThat(sut.getEmail()).isEqualTo(customer.getEmail());
+        Assertions.assertThat(sut.getCpf()).isEqualTo(customer.getCpf());
+        Assertions.assertThat(sut.getBirthdate()).isEqualTo("01/01/1990");
+        Assertions.assertThat(sut.getGender()).isEqualTo("feminino");
+        Assertions.assertThat(sut.getPoints()).isEqualTo(customer.getPoints());
+    }
+
+    @Test
+    public void toDto_WithValidMaleCustomer_ReturnsCustomerResponseDto() {
+        // Arrange
+        Customer customer = new Customer(1L, "499.130.480-60", "Roger", GenderEnum.MALE, LocalDate.of(1990, 1, 1), "maria@example.com", 100L, "http://example.com/photo.jpg");
+
+        // Act
+        CustomerResponseDto sut = CustomerMapper.toDto(customer);
+
+        // Assert
+        Assertions.assertThat(sut).isNotNull();
+        Assertions.assertThat(sut.getName()).isEqualTo(customer.getName());
+        Assertions.assertThat(sut.getEmail()).isEqualTo(customer.getEmail());
+        Assertions.assertThat(sut.getCpf()).isEqualTo(customer.getCpf());
+        Assertions.assertThat(sut.getBirthdate()).isEqualTo("01/01/1990");
+        Assertions.assertThat(sut.getGender()).isEqualTo("masculino");
+        Assertions.assertThat(sut.getPoints()).isEqualTo(customer.getPoints());
     }
 }

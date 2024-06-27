@@ -2,6 +2,7 @@ package com.rodrigovalest.ms_costumer.services;
 
 import com.rodrigovalest.ms_costumer.exceptions.CpfAlreadyRegisteredException;
 import com.rodrigovalest.ms_costumer.exceptions.EmailAlreadyRegistedException;
+import com.rodrigovalest.ms_costumer.exceptions.EntityNotFoundException;
 import com.rodrigovalest.ms_costumer.exceptions.InvalidCpfException;
 import com.rodrigovalest.ms_costumer.models.entities.Customer;
 import com.rodrigovalest.ms_costumer.models.enums.GenderEnum;
@@ -14,6 +15,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
+import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -77,6 +79,43 @@ public class CustomerServiceTest {
         Assertions.assertThatThrownBy(() -> this.customerService.create(customer)).isInstanceOf(InvalidCpfException.class);
 
         verify(this.customerRepository, times(0)).save(any(Customer.class));
+    }
+
+    @Test
+    public void findById_WithValidId_ReturnsCostumer() {
+        // Arrange
+        Long id = 1L;
+        Customer customer = new Customer(id, "101.639.219-84", "Maria", GenderEnum.FEMALE, LocalDate.of(1990, 1, 1), "maria@example.com", 100L, "http://example.com/photo.jpg");
+        when(this.customerRepository.findById(id)).thenReturn(Optional.of(customer));
+
+        // Act
+        Customer sut = this.customerService.findById(id);
+
+        // Assert
+        Assertions.assertThat(sut).isNotNull();
+        Assertions.assertThat(sut.getId()).isEqualTo(customer.getId());
+        Assertions.assertThat(sut.getCpf()).isEqualTo(customer.getCpf());
+        Assertions.assertThat(sut.getName()).isEqualTo(customer.getName());
+        Assertions.assertThat(sut.getGender()).isEqualTo(customer.getGender());
+        Assertions.assertThat(sut.getBirthdate()).isEqualTo(customer.getBirthdate());
+        Assertions.assertThat(sut.getEmail()).isEqualTo(customer.getEmail());
+        Assertions.assertThat(sut.getPoints()).isEqualTo(customer.getPoints());
+        Assertions.assertThat(sut.getUrlPhoto()).isEqualTo(customer.getUrlPhoto());
+
+        verify(this.customerRepository, times(1)).findById(1L);
+    }
+
+    @Test
+    public void findById_WithInvalidId_ThrowsException() {
+        // Arrange
+        Long id = 1L;
+        when(this.customerRepository.findById(id)).thenThrow(EntityNotFoundException.class);
+
+        // Act
+        Assertions.assertThatThrownBy(() -> this.customerService.findById(id)).isInstanceOf(EntityNotFoundException.class);
+
+        // Assert
+        verify(this.customerRepository, times(1)).findById(1L);
     }
 
     @Test
