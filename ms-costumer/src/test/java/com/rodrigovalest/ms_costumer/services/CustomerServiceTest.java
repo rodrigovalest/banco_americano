@@ -175,7 +175,7 @@ public class CustomerServiceTest {
         Customer toUpdateCustomer = new Customer(null, "499.130.480-60", "Tonio Silveira", GenderEnum.MALE, LocalDate.of(1990, 1, 1), "emailalreadyused@example.com", 100L, "http://example.com/photo.jpg");
         Customer persistedCustomer = new Customer(id, "499.130.480-60", "Tonio", GenderEnum.MALE, LocalDate.of(1990, 1, 1), "tonio@example.com", 100L, "http://example.com/photo.jpg");
         when(this.customerRepository.findById(id)).thenReturn(Optional.of(persistedCustomer));
-        when(this.customerRepository.existsByEmail(toUpdateCustomer.getCpf())).thenReturn(false);
+        when(this.customerRepository.existsByCpf(toUpdateCustomer.getCpf())).thenReturn(false);
         when(this.customerRepository.existsByEmail(toUpdateCustomer.getEmail())).thenReturn(true);
 
         Assertions.assertThatThrownBy(() -> this.customerService.update(toUpdateCustomer, id)).isInstanceOf(EmailAlreadyRegistedException.class);
@@ -194,6 +194,31 @@ public class CustomerServiceTest {
         Assertions.assertThatThrownBy(() -> this.customerService.update(toUpdateCustomer, id)).isInstanceOf(CpfAlreadyRegisteredException.class);
 
         verify(this.customerRepository, times(1)).findById(id);
+    }
+
+    @Test
+    public void deleteById_WithValidId_ThrowsException() {
+        // Arrange
+        Long id = 100L;
+        when(this.customerRepository.existsById(id)).thenReturn(true);
+
+        // Act
+        this.customerService.deleteById(id);
+
+        // Assert
+        verify(this.customerRepository, times(1)).existsById(id);
+        verify(this.customerRepository, times(1)).deleteById(id);
+    }
+
+    @Test
+    public void deleteById_WithInvalidId_ThrowsException() {
+        Long id = 100L;
+        when(this.customerRepository.existsById(id)).thenReturn(false);
+
+        Assertions.assertThatThrownBy(() -> this.customerService.deleteById(id)).isInstanceOf(EntityNotFoundException.class);
+
+        verify(this.customerRepository, times(1)).existsById(id);
+        verify(this.customerRepository, times(0)).deleteById(id);
     }
 
     @Test

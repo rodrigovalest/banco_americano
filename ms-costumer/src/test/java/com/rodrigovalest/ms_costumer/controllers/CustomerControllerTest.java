@@ -23,7 +23,8 @@ import java.time.LocalDate;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -268,5 +269,33 @@ public class CustomerControllerTest {
 
         // Assert
         response.andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
+    public void deleteById_WithValidId_Returns204NoContent() throws Exception {
+        // Arrange
+        Long id = 1000L;
+
+        // Act
+        ResultActions response = this.mockMvc.perform(delete("/v1/customers/" + id));
+
+        // Assert
+        response.andExpect(status().isNoContent());
+        verify(this.customerService, times(1)).deleteById(id);
+    }
+
+    @Test
+    public void deleteById_WithInexistentId_Throws404NotFound() throws Exception {
+        // Arrange
+        Long id = 1000L;
+        doThrow(new EntityNotFoundException("Customer with id " + id + " not found"))
+                .when(customerService).deleteById(id);
+
+        // Act
+        ResultActions response = this.mockMvc.perform(delete("/v1/customers/" + id));
+
+        // Assert
+        response.andExpect(status().isNotFound());
+        verify(this.customerService, times(1)).deleteById(id);
     }
 }
