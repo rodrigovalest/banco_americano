@@ -55,6 +55,13 @@ public class CustomerService {
         return this.customerRepository.save(persistedCustomer);
     }
 
+    @Transactional
+    public void deleteById(Long id) {
+        if (!this.customerRepository.existsById(id))
+            throw new EntityNotFoundException("Customer with id {" + id + "} not found");
+        this.customerRepository.deleteById(id);
+    }
+
     public static boolean validateCpf(String cpf) {
         if (cpf == null)
             return false;

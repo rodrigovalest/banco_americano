@@ -22,7 +22,7 @@ public class CustomerController {
     private CustomerService customerService;
 
     @PostMapping
-    public ResponseEntity<?> createCustomer(@Valid @RequestBody CreateCustomerDto createCustomerDto) {
+    public ResponseEntity<?> create(@Valid @RequestBody CreateCustomerDto createCustomerDto) {
         Customer newCustomer = this.customerService.create(CustomerMapper.toModel(createCustomerDto));
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")
@@ -42,5 +42,11 @@ public class CustomerController {
     public ResponseEntity<?> update(@PathVariable("id") Long customerId, @Valid @RequestBody UpdateCustomerDto updateCustomerDto) {
         Customer updatedCustomer = this.customerService.update(CustomerMapper.toModel(updateCustomerDto), customerId);
         return ResponseEntity.ok(CustomerMapper.toDto(updatedCustomer));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteById(@PathVariable("id") Long customerId) {
+        this.customerService.deleteById(customerId);
+        return ResponseEntity.noContent().build();
     }
 }
