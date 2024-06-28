@@ -2,10 +2,13 @@ spring:
   application:
     name: ms-calculate
 
+  config:
+    import: env.properties
+
   datasource:
-    url: jdbc:mysql://localhost:13001/dbmscalculate
-    username: 123mudar
-    password: 123mudar
+    url: jdbc:mysql://localhost:13000/${DB_DATABASE_NAME}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
@@ -14,4 +17,3 @@ spring:
 
 server:
   port: 18000
-
