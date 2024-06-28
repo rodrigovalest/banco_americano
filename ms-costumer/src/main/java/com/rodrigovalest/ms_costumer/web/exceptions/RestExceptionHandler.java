@@ -3,6 +3,7 @@ package com.rodrigovalest.ms_costumer.web.exceptions;
 import com.rodrigovalest.ms_costumer.exceptions.CpfAlreadyRegisteredException;
 import com.rodrigovalest.ms_costumer.exceptions.EmailAlreadyRegistedException;
 import com.rodrigovalest.ms_costumer.exceptions.EntityNotFoundException;
+import com.rodrigovalest.ms_costumer.exceptions.InvalidCpfException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -31,6 +32,7 @@ public class RestExceptionHandler {
     @ExceptionHandler(RuntimeException.class)
     private ResponseEntity<RestErrorMessage> runtimeExceptionHandler(RuntimeException e) {
         log.info(String.valueOf(e.getCause()) + " | " + e.getMessage());
+        e.printStackTrace();
 
         RestErrorMessage restErrorMessage = new RestErrorMessage(HttpStatus.INTERNAL_SERVER_ERROR, "something went wrong");
         return ResponseEntity
@@ -64,6 +66,15 @@ public class RestExceptionHandler {
 
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(restErrorMessage);
+    }
+
+    @ExceptionHandler(InvalidCpfException.class)
+    private ResponseEntity<RestErrorMessage> invalidCpfExceptionHandler(InvalidCpfException e) {
+        RestErrorMessage restErrorMessage = new RestErrorMessage(HttpStatus.UNPROCESSABLE_ENTITY, e.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.UNPROCESSABLE_ENTITY)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(restErrorMessage);
     }

@@ -4,6 +4,7 @@ import com.rodrigovalest.ms_costumer.models.entities.Customer;
 import com.rodrigovalest.ms_costumer.services.CustomerService;
 import com.rodrigovalest.ms_costumer.web.dtos.mapper.CustomerMapper;
 import com.rodrigovalest.ms_costumer.web.dtos.request.CreateCustomerDto;
+import com.rodrigovalest.ms_costumer.web.dtos.request.UpdateCustomerDto;
 import com.rodrigovalest.ms_costumer.web.dtos.response.CustomerResponseDto;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,5 +36,11 @@ public class CustomerController {
     public ResponseEntity<?> findById(@PathVariable("id") Long customerId) {
         Customer customer = this.customerService.findById(customerId);
         return ResponseEntity.ok(CustomerMapper.toDto(customer));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> update(@PathVariable("id") Long customerId, @Valid @RequestBody UpdateCustomerDto updateCustomerDto) {
+        Customer updatedCustomer = this.customerService.update(CustomerMapper.toModel(updateCustomerDto), customerId);
+        return ResponseEntity.ok(CustomerMapper.toDto(updatedCustomer));
     }
 }

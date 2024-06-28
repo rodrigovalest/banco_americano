@@ -1,12 +1,16 @@
 package com.rodrigovalest.ms_costumer.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.rodrigovalest.ms_costumer.exceptions.CpfAlreadyRegisteredException;
+import com.rodrigovalest.ms_costumer.exceptions.EmailAlreadyRegistedException;
 import com.rodrigovalest.ms_costumer.exceptions.EntityNotFoundException;
+import com.rodrigovalest.ms_costumer.exceptions.InvalidCpfException;
 import com.rodrigovalest.ms_costumer.models.entities.Customer;
 import com.rodrigovalest.ms_costumer.models.enums.GenderEnum;
 import com.rodrigovalest.ms_costumer.services.CustomerService;
 import com.rodrigovalest.ms_costumer.web.controllers.CustomerController;
 import com.rodrigovalest.ms_costumer.web.dtos.request.CreateCustomerDto;
+import com.rodrigovalest.ms_costumer.web.dtos.request.UpdateCustomerDto;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -18,9 +22,9 @@ import org.springframework.test.web.servlet.ResultActions;
 import java.time.LocalDate;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -155,5 +159,114 @@ public class CustomerControllerTest {
 
         // Assert
         response.andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void update_WithValidData_Returns200AndUpdatedCustomer() throws Exception {
+        // Arrange
+        Long id = 0L;
+        UpdateCustomerDto updateCustomerDto = new UpdateCustomerDto("499.130.480-60", "new customer", "masculino", "11/10/1990", "newcustomer@email.com", "photobase64");
+        Customer persistedCustomer = new Customer(id, "499.130.480-60", "old customer", GenderEnum.MALE, LocalDate.of(1990, 10, 11), "oldcustomer@email.com", 100L, "https://oldcustomerimage.com");
+        Customer updatedCustomer = new Customer(id, "499.130.480-60", "new customer", GenderEnum.MALE, LocalDate.of(1990, 10, 11), "newcustomer@email.com", 100L, "https://newcustomerimage.com");
+
+        when(this.customerService.findById(id)).thenReturn(persistedCustomer);
+        when(this.customerService.update(any(Customer.class), anyLong())).thenReturn(updatedCustomer);
+
+        // Act
+        ResultActions response = this.mockMvc.perform(put("/v1/customers/" + id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateCustomerDto)));
+
+        // Assert
+        response.andExpect(status().isOk())
+                .andExpect(jsonPath("$.cpf").value(updateCustomerDto.getCpf()))
+                .andExpect(jsonPath("$.name").value(updateCustomerDto.getName()))
+                .andExpect(jsonPath("$.gender").value("masculino"))
+                .andExpect(jsonPath("$.birthdate").value("11/10/1990"))
+                .andExpect(jsonPath("$.email").value(updateCustomerDto.getEmail()))
+                .andExpect(jsonPath("$.points").isNotEmpty());
+    }
+
+    @Test
+    public void update_WithInexistentId_Throws404NotFoundException() throws Exception {
+        // Arrange
+        Long id = 0L;
+        UpdateCustomerDto updateCustomerDto = new UpdateCustomerDto("499.130.480-60", "new customer", "masculino", "11/10/1990", "newcustomer@email.com", "photobase64");
+
+        when(this.customerService.update(any(Customer.class), anyLong())).thenThrow(EntityNotFoundException.class);
+
+        // Act
+        ResultActions response = this.mockMvc.perform(put("/v1/customers/" + id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateCustomerDto)));
+
+        // Assert
+        response.andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void update_WithInvalidCpf_Throws422UnprocessableEntity() throws Exception {
+        // Arrange
+        Long id = 0L;
+        UpdateCustomerDto updateCustomerDto = new UpdateCustomerDto("499.130.000-60", "new customer", "masculino", "11/10/1990", "newcustomer@email.com", "photobase64");
+
+        when(this.customerService.update(any(Customer.class), anyLong())).thenThrow(InvalidCpfException.class);
+
+        // Act
+        ResultActions response = this.mockMvc.perform(put("/v1/customers/" + id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateCustomerDto)));
+
+        // Assert
+        response.andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
+    public void update_WithCpfAlreadyRegistered_Throws422UnprocessableEntity() throws Exception {
+        // Arrange
+        Long id = 0L;
+        UpdateCustomerDto updateCustomerDto = new UpdateCustomerDto("499.130.000-60", "new customer", "masculino", "11/10/1990", "newcustomer@email.com", "photobase64");
+
+        when(this.customerService.update(any(Customer.class), anyLong())).thenThrow(CpfAlreadyRegisteredException.class);
+
+        // Act
+        ResultActions response = this.mockMvc.perform(put("/v1/customers/" + id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateCustomerDto)));
+
+        // Assert
+        response.andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
+    public void update_WithEmailAlreadyRegistered_Throws422UnprocessableEntity() throws Exception {
+        // Arrange
+        Long id = 0L;
+        UpdateCustomerDto updateCustomerDto = new UpdateCustomerDto("499.130.000-60", "new customer", "masculino", "11/10/1990", "newcustomer@email.com", "photobase64");
+
+        when(this.customerService.update(any(Customer.class), anyLong())).thenThrow(EmailAlreadyRegistedException.class);
+
+        // Act
+        ResultActions response = this.mockMvc.perform(put("/v1/customers/" + id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateCustomerDto)));
+
+        // Assert
+        response.andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
+    public void update_WithInvalidData_Throws422UnprocessableEntity() throws Exception {
+        // Arrange
+        Long id = 0L;
+        UpdateCustomerDto updateCustomerDto = new UpdateCustomerDto("49913000060", "", "masculino", "2000/10/01", "newcustomer", "photobase64");
+
+        // Act
+        ResultActions response = this.mockMvc.perform(put("/v1/customers/" + id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateCustomerDto)));
+
+        // Assert
+        response.andExpect(status().isUnprocessableEntity());
     }
 }

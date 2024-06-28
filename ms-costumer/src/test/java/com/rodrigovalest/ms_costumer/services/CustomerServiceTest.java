@@ -119,6 +119,84 @@ public class CustomerServiceTest {
     }
 
     @Test
+    public void updateCustomer_WithValidData_ReturnsUpdatedCustomer() {
+        // Arrange
+        Long id = 100L;
+        Customer toUpdateCustomer = new Customer(null, "499.130.480-60", "Tonio Silveira", GenderEnum.MALE, LocalDate.of(1990, 1, 1), "tonio@example.com", 100L, "http://example.com/photo.jpg");
+        Customer persistedCustomer = new Customer(id, "499.130.480-60", "Tonio", GenderEnum.MALE, LocalDate.of(1990, 1, 1), "tonio@example.com", 100L, "http://example.com/photo.jpg");
+        Customer updatedCustomer = new Customer(id, "499.130.480-60", "Tonio Silveira", GenderEnum.MALE, LocalDate.of(1990, 1, 1), "tonio@example.com", 100L, "http://example.com/photo.jpg");
+
+        when(this.customerRepository.findById(id)).thenReturn(Optional.of(persistedCustomer));
+        when(this.customerRepository.save(updatedCustomer)).thenReturn(updatedCustomer);
+
+        // Act
+        Customer sut = this.customerService.update(toUpdateCustomer, id);
+
+        // Assert
+        Assertions.assertThat(sut).isNotNull();
+        Assertions.assertThat(sut.getId()).isEqualTo(id);
+        Assertions.assertThat(sut.getCpf()).isEqualTo(toUpdateCustomer.getCpf());
+        Assertions.assertThat(sut.getName()).isEqualTo(toUpdateCustomer.getName());
+        Assertions.assertThat(sut.getEmail()).isEqualTo(toUpdateCustomer.getEmail());
+        Assertions.assertThat(sut.getPoints()).isEqualTo(toUpdateCustomer.getPoints());
+        Assertions.assertThat(sut.getBirthdate()).isEqualTo(toUpdateCustomer.getBirthdate());
+        Assertions.assertThat(sut.getGender()).isEqualTo(toUpdateCustomer.getGender());
+
+        verify(this.customerRepository, times(1)).findById(id);
+        verify(this.customerRepository, times(1)).save(updatedCustomer);
+    }
+
+    @Test
+    public void updateCustomer_WithInexistentId_ThrowsException() {
+        Long id = 100L;
+        Customer toUpdateCustomer = new Customer(null, "499.130.480-60", "Tonio Silveira", GenderEnum.MALE, LocalDate.of(1990, 1, 1), "tonio@example.com", 100L, "http://example.com/photo.jpg");
+        when(this.customerRepository.findById(id)).thenThrow(EntityNotFoundException.class);
+
+        Assertions.assertThatThrownBy(() -> this.customerService.update(toUpdateCustomer, id)).isInstanceOf(EntityNotFoundException.class);
+
+        verify(this.customerRepository, times(1)).findById(id);
+    }
+
+    @Test
+    public void updateCustomer_WithInvalidCpf_ThrowsException() {
+        Long id = 100L;
+        Customer toUpdateCustomer = new Customer(null, "101.639.219-84", "Tonio Silveira", GenderEnum.MALE, LocalDate.of(1990, 1, 1), "tonio@example.com", 100L, "http://example.com/photo.jpg");
+        Customer persistedCustomer = new Customer(id, "499.130.480-60", "Tonio", GenderEnum.MALE, LocalDate.of(1990, 1, 1), "tonio@example.com", 100L, "http://example.com/photo.jpg");
+        when(this.customerRepository.findById(id)).thenReturn(Optional.of(persistedCustomer));
+
+        Assertions.assertThatThrownBy(() -> this.customerService.update(toUpdateCustomer, id)).isInstanceOf(InvalidCpfException.class);
+
+        verify(this.customerRepository, times(1)).findById(id);
+    }
+
+    @Test
+    public void updateCustomer_WithAlreadyExistentEmail_ThrowsException() {
+        Long id = 100L;
+        Customer toUpdateCustomer = new Customer(null, "499.130.480-60", "Tonio Silveira", GenderEnum.MALE, LocalDate.of(1990, 1, 1), "emailalreadyused@example.com", 100L, "http://example.com/photo.jpg");
+        Customer persistedCustomer = new Customer(id, "499.130.480-60", "Tonio", GenderEnum.MALE, LocalDate.of(1990, 1, 1), "tonio@example.com", 100L, "http://example.com/photo.jpg");
+        when(this.customerRepository.findById(id)).thenReturn(Optional.of(persistedCustomer));
+        when(this.customerRepository.existsByEmail(toUpdateCustomer.getCpf())).thenReturn(false);
+        when(this.customerRepository.existsByEmail(toUpdateCustomer.getEmail())).thenReturn(true);
+
+        Assertions.assertThatThrownBy(() -> this.customerService.update(toUpdateCustomer, id)).isInstanceOf(EmailAlreadyRegistedException.class);
+
+        verify(this.customerRepository, times(1)).findById(id);
+    }
+
+    @Test
+    public void updateCustomer_WithAlreadyExistentCpf_ThrowsException() {
+        Long id = 100L;
+        Customer toUpdateCustomer = new Customer(null, "499.130.480-60", "Tonio Silveira", GenderEnum.MALE, LocalDate.of(1990, 1, 1), "emailalreadyused@example.com", 100L, "http://example.com/photo.jpg");
+        Customer persistedCustomer = new Customer(id, "212.280.439-49", "Tonio", GenderEnum.MALE, LocalDate.of(1990, 1, 1), "tonio@example.com", 100L, "http://example.com/photo.jpg");
+        when(this.customerRepository.findById(id)).thenReturn(Optional.of(persistedCustomer));
+        when(this.customerRepository.existsByCpf(toUpdateCustomer.getCpf())).thenReturn(true);
+
+        Assertions.assertThatThrownBy(() -> this.customerService.update(toUpdateCustomer, id)).isInstanceOf(CpfAlreadyRegisteredException.class);
+
+        verify(this.customerRepository, times(1)).findById(id);
+    }
+
+    @Test
     public void validateCpf_WithValidCpf_ReturnTrue() {
         String validCpf1 = "212.280.439-49";
         String validCpf2 = "981.639.279-84";

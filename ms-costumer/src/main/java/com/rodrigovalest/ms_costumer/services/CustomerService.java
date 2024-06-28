@@ -35,6 +35,26 @@ public class CustomerService {
         );
     }
 
+    @Transactional
+    public Customer update(Customer customer, Long id) {
+        Customer persistedCustomer = this.findById(id);
+
+        if (!CustomerService.validateCpf(customer.getCpf()))
+            throw new InvalidCpfException("CPF is invalid");
+        if (this.customerRepository.existsByCpf(customer.getCpf()) && !customer.getCpf().equals(persistedCustomer.getCpf()))
+            throw new CpfAlreadyRegisteredException("CPF already registered");
+        if (this.customerRepository.existsByEmail(customer.getEmail()) && !customer.getEmail().equals(persistedCustomer.getEmail()))
+            throw new EmailAlreadyRegistedException("Email already registered");
+
+        persistedCustomer.setName(customer.getName());
+        persistedCustomer.setGender(customer.getGender());
+        persistedCustomer.setEmail(customer.getEmail());
+        persistedCustomer.setBirthdate(customer.getBirthdate());
+        persistedCustomer.setCpf(customer.getCpf());
+
+        return this.customerRepository.save(persistedCustomer);
+    }
+
     public static boolean validateCpf(String cpf) {
         if (cpf == null)
             return false;

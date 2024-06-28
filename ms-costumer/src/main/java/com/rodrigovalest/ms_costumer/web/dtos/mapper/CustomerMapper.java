@@ -3,6 +3,7 @@ package com.rodrigovalest.ms_costumer.web.dtos.mapper;
 import com.rodrigovalest.ms_costumer.models.entities.Customer;
 import com.rodrigovalest.ms_costumer.models.enums.GenderEnum;
 import com.rodrigovalest.ms_costumer.web.dtos.request.CreateCustomerDto;
+import com.rodrigovalest.ms_costumer.web.dtos.request.UpdateCustomerDto;
 import com.rodrigovalest.ms_costumer.web.dtos.response.CustomerResponseDto;
 
 import java.time.LocalDate;
@@ -49,5 +50,28 @@ public class CustomerMapper {
         customerResponseDto.setPhoto("MUDAR E COLOCAR O BASE 64 DEPOIS");
 
         return customerResponseDto;
+    }
+
+    public static Customer toModel(UpdateCustomerDto updateCustomerDto) {
+        Customer customer = new Customer();
+
+        customer.setId(null);
+        customer.setName(updateCustomerDto.getName());
+        customer.setCpf(updateCustomerDto.getCpf());
+        customer.setEmail(updateCustomerDto.getEmail());
+        customer.setPoints(null);
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        LocalDate birthdate = LocalDate.parse(updateCustomerDto.getBirthdate(), formatter);
+        customer.setBirthdate(birthdate);
+
+        if (Objects.equals(updateCustomerDto.getGender().toLowerCase(), "masculino"))
+            customer.setGender(GenderEnum.MALE);
+        else if (Objects.equals(updateCustomerDto.getGender().toLowerCase(), "feminino"))
+            customer.setGender(GenderEnum.FEMALE);
+
+        customer.setUrlPhoto(null);
+
+        return customer;
     }
 }
