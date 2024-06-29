@@ -6,6 +6,7 @@ import com.rodrigovalest.ms_calculate.models.entities.Rule;
 import com.rodrigovalest.ms_calculate.services.RuleService;
 import com.rodrigovalest.ms_calculate.web.controllers.RuleController;
 import com.rodrigovalest.ms_calculate.web.dtos.request.CreateRuleDto;
+import com.rodrigovalest.ms_calculate.web.dtos.request.UpdateRuleDto;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -93,5 +94,59 @@ public class RuleControllerTest {
         // Assert
         response.andExpect(status().isNotFound());
         verify(this.ruleService, times(1)).findById(id);
+    }
+
+    @Test
+    public void update_WithValidData_Returns204NoContent() throws Exception {
+        // Arrange
+        Long id = 100L;
+        UpdateRuleDto updateRuleDto = new UpdateRuleDto("new category", 10L);
+        Rule toUpdateRule = new Rule(null, updateRuleDto.getCategory(), updateRuleDto.getParity());
+        Rule updatedRule = new Rule(100L, updateRuleDto.getCategory(), updateRuleDto.getParity());
+        when(this.ruleService.update(toUpdateRule, id)).thenReturn(updatedRule);
+
+        // Act
+        ResultActions response = this.mockMvc.perform(put("/v1/rules/" + id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(this.objectMapper.writeValueAsString(updateRuleDto)));
+
+        // Assert
+        response.andExpect(status().isNoContent());
+        verify(this.ruleService, times(1)).update(toUpdateRule, id);
+    }
+
+    @Test
+    public void update_WithInvalidBody_Returns422UnprocessableEntity() throws Exception {
+        // Arrange
+        Long id = 100L;
+        UpdateRuleDto updateRuleDto = new UpdateRuleDto(null, -10L);
+        Rule toUpdateRule = new Rule(null, updateRuleDto.getCategory(), updateRuleDto.getParity());
+
+        // Act
+        ResultActions response = this.mockMvc.perform(put("/v1/rules/" + id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(this.objectMapper.writeValueAsString(updateRuleDto)));
+
+        // Assert
+        response.andExpect(status().isUnprocessableEntity());
+        verify(this.ruleService, times(0)).update(any(Rule.class), any(Long.class));
+    }
+
+    @Test
+    public void update_WithInexistentId_Returns404NotFound() throws Exception {
+        // Arrange
+        Long id = 100L;
+        UpdateRuleDto updateRuleDto = new UpdateRuleDto("new category", 10L);
+        Rule toUpdateRule = new Rule(null, updateRuleDto.getCategory(), updateRuleDto.getParity());
+        when(this.ruleService.update(toUpdateRule, id)).thenThrow(EntityNotFoundException.class);
+
+        // Act
+        ResultActions response = this.mockMvc.perform(put("/v1/rules/" + id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(this.objectMapper.writeValueAsString(updateRuleDto)));
+
+        // Assert
+        response.andExpect(status().isNotFound());
+        verify(this.ruleService, times(1)).update(toUpdateRule, id);
     }
 }

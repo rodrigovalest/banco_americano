@@ -24,4 +24,13 @@ public class RuleService {
                 () -> new EntityNotFoundException("rule with id {" + id + "} not found")
         );
     }
+
+    @Transactional
+    public Rule update(Rule rule, Long id) {
+        Rule persistedRule = this.findById(id);
+        persistedRule.setParity(rule.getParity());
+        persistedRule.setCategory(rule.getCategory());
+
+        return this.ruleRepository.save(persistedRule);
+    }
 }

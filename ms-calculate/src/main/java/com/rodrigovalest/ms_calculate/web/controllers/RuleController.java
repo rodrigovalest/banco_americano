@@ -4,6 +4,7 @@ import com.rodrigovalest.ms_calculate.models.entities.Rule;
 import com.rodrigovalest.ms_calculate.services.RuleService;
 import com.rodrigovalest.ms_calculate.web.dtos.mapper.RuleMapper;
 import com.rodrigovalest.ms_calculate.web.dtos.request.CreateRuleDto;
+import com.rodrigovalest.ms_calculate.web.dtos.request.UpdateRuleDto;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -22,11 +23,7 @@ public class RuleController {
     @PostMapping
     public ResponseEntity<?> create(@Valid @RequestBody CreateRuleDto createRuleDto) {
         Rule rule = this.ruleService.create(RuleMapper.toEntity(createRuleDto));
-        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
-                .path("/{id}")
-                .buildAndExpand(rule.getId())
-                .toUri();
-
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(rule.getId()).toUri();
         return ResponseEntity.created(location).build();
     }
 
@@ -34,5 +31,12 @@ public class RuleController {
     public ResponseEntity<?> findById(@PathVariable("id") Long id) {
         Rule rule = this.ruleService.findById(id);
         return ResponseEntity.ok(RuleMapper.toDto(rule));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> update(@PathVariable("id") Long id, @Valid @RequestBody UpdateRuleDto updateRuleDto) {
+        Rule rule = this.ruleService.update(RuleMapper.toEntity(updateRuleDto), id);
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest().buildAndExpand().toUri();
+        return ResponseEntity.noContent().location(location).build();
     }
 }

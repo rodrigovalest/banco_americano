@@ -65,4 +65,38 @@ public class RuleServiceTest {
 
         verify(this.ruleRepository, times(1)).findById(id);
     }
+
+    @Test
+    public void update_WithValidData_ReturnsRule() {
+        // Arrange
+        Long id = 100L;
+        Rule toUpdateRule = new Rule(null, "new category", 2L);
+        Rule persistedRule = new Rule(id, "old category", 1L);
+        Rule updatedRule = new Rule(id, toUpdateRule.getCategory(), toUpdateRule.getParity());
+        when(this.ruleRepository.findById(id)).thenReturn(Optional.of(persistedRule));
+        when(this.ruleRepository.save(updatedRule)).thenReturn(updatedRule);
+
+        // Act
+        Rule sut = this.ruleService.update(toUpdateRule, id);
+
+        // Assert
+        Assertions.assertThat(sut).isNotNull();
+        Assertions.assertThat(sut.getId()).isEqualTo(id);
+        Assertions.assertThat(sut.getParity()).isEqualTo(toUpdateRule.getParity());
+        Assertions.assertThat(sut.getCategory()).isEqualTo(toUpdateRule.getCategory());
+        verify(this.ruleRepository, times(1)).findById(id);
+        verify(this.ruleRepository, times(1)).save(updatedRule);
+    }
+
+    @Test
+    public void update_WithInexistentId_ThrowsException() {
+        Long id = 100L;
+        Rule toUpdateRule = new Rule(null, "new category", 2L);
+        when(this.ruleRepository.findById(id)).thenThrow(EntityNotFoundException.class);
+
+        Assertions.assertThatThrownBy(() -> this.ruleService.update(toUpdateRule, id)).isInstanceOf(EntityNotFoundException.class);
+
+        verify(this.ruleRepository, times(1)).findById(id);
+        verify(this.ruleRepository, times(0)).save(any(Rule.class));
+    }
 }
