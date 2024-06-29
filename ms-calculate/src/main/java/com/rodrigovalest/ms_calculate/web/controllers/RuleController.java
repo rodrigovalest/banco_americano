@@ -39,4 +39,10 @@ public class RuleController {
         URI location = ServletUriComponentsBuilder.fromCurrentRequest().buildAndExpand().toUri();
         return ResponseEntity.noContent().location(location).build();
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteById(@PathVariable("id") Long id) {
+        this.ruleService.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
 }

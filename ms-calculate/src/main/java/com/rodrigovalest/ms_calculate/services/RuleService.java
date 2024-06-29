@@ -33,4 +33,11 @@ public class RuleService {
 
         return this.ruleRepository.save(persistedRule);
     }
+
+    @Transactional
+    public void deleteById(Long id) {
+        if (!this.ruleRepository.existsById(id))
+            throw new EntityNotFoundException("rule with id {" + id + "} not found");
+        this.ruleRepository.deleteById(id);
+    }
 }

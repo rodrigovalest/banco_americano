@@ -21,6 +21,7 @@ import static org.mockito.Mockito.times;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 @WebMvcTest(RuleController.class)
 public class RuleControllerTest {
 
@@ -148,5 +149,33 @@ public class RuleControllerTest {
         // Assert
         response.andExpect(status().isNotFound());
         verify(this.ruleService, times(1)).update(toUpdateRule, id);
+    }
+
+    @Test
+    public void deleteById_WithValidId_Returns204NoContent() throws Exception {
+        // Arrange
+        Long id = 100L;
+
+        // Act
+        ResultActions response = this.mockMvc.perform(delete("/v1/rules/" + id));
+
+        // Assert
+        response.andExpect(status().isNoContent());
+        verify(this.ruleService, times(1)).deleteById(id);
+    }
+
+    @Test
+    public void deleteById_WithInexistentId_Returns404NotFound() throws Exception {
+        // Arrange
+        Long id = 100L;
+        doThrow(new EntityNotFoundException("Customer with id " + id + " not found"))
+                .when(this.ruleService).deleteById(id);
+
+        // Act
+        ResultActions response = this.mockMvc.perform(delete("/v1/rules/" + id));
+
+        // Assert
+        response.andExpect(status().isNotFound());
+        verify(this.ruleService, times(1)).deleteById(id);
     }
 }

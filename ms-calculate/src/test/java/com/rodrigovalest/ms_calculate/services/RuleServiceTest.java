@@ -99,4 +99,26 @@ public class RuleServiceTest {
         verify(this.ruleRepository, times(1)).findById(id);
         verify(this.ruleRepository, times(0)).save(any(Rule.class));
     }
+
+    @Test
+    public void deleteById_WithValidId_ThrowsException() {
+        Long id = 100L;
+        when(this.ruleRepository.existsById(id)).thenReturn(true);
+
+        this.ruleService.deleteById(id);
+
+        verify(this.ruleRepository, times(1)).existsById(id);
+        verify(this.ruleRepository, times(1)).deleteById(id);
+    }
+
+    @Test
+    public void deleteById_WithInexistentId_ThrowsException() {
+        Long id = 100L;
+        when(this.ruleRepository.existsById(id)).thenReturn(false);
+
+        Assertions.assertThatThrownBy(() -> this.ruleService.deleteById(id)).isInstanceOf(EntityNotFoundException.class);
+
+        verify(this.ruleRepository, times(1)).existsById(id);
+        verify(this.ruleRepository, times(0)).deleteById(id);
+    }
 }
