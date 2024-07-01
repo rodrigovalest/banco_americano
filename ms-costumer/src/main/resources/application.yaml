@@ -2,10 +2,13 @@ spring:
   application:
     name: ms-costumer
 
+  config:
+    import: env.properties
+
   datasource:
-    url: jdbc:mysql://localhost:13000/dbmscostumer
-    username: 123mudar
-    password: 123mudar
+    url: jdbc:mysql://localhost:13000/${DB_DATABASE_NAME}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
@@ -14,3 +17,11 @@ spring:
 
 server:
   port: 18001
+
+aws:
+  s3:
+    bucket-name: ${AWS_S3_BUCKET_NAME}
+    region: ${AWS_S3_REGION}
+
+  access-key: ${AWS_ACESS_KEY_ID}
+  secret-key: ${AWS_SECRET_ACESS_KEY}
