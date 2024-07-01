@@ -2,10 +2,13 @@ spring:
   application:
     name: ms-payment
 
+  config:
+    import: env.properties
+
   datasource:
-    url: jdbc:mysql://localhost:13002/dbmspayment
-    username: 123mudar
-    password: 123mudar
+    url: jdbc:mysql://localhost:13002/${DB_DATABASE_NAME}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
@@ -15,3 +18,9 @@ spring:
 server:
   port: 18002
 
+feign:
+  client:
+    customer:
+      url: ${MS_CUSTOMER_URL}
+    calculate:
+      url: ${MS_CALCULATE_URL}
