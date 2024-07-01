@@ -18,3 +18,9 @@ spring:
 server:
   port: 18002
 
+feign:
+  client:
+    customer:
+      url: ${MS_CUSTOMER_URL}
+    calculate:
+      url: ${MS_CALCULATE_URL}
