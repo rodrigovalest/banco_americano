@@ -15,6 +15,12 @@ spring:
     hibernate:
       ddl-auto: update
 
+  rabbitmq:
+    host: ${RABBITMQ_HOST}
+    port: ${RABBITMQ_PORT}
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PASSWORD}
+
 server:
   port: 18002
 
@@ -24,3 +30,7 @@ feign:
       url: ${MS_CUSTOMER_URL}
     calculate:
       url: ${MS_CALCULATE_URL}
+
+rabbitmq:
+  queue:
+    name: ${RABBITMQ_QUEUE}
