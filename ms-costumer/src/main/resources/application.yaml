@@ -15,6 +15,12 @@ spring:
     hibernate:
       ddl-auto: update
 
+  rabbitmq:
+    host: ${RABBITMQ_HOST}
+    port: ${RABBITMQ_PORT}
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PASSWORD}
+
 server:
   port: 18001
 
@@ -25,3 +31,7 @@ aws:
 
   access-key: ${AWS_ACESS_KEY_ID}
   secret-key: ${AWS_SECRET_ACESS_KEY}
+
+rabbitmq:
+  queue:
+    name: ${RABBITMQ_QUEUE}

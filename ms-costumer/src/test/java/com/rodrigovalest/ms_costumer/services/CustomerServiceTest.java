@@ -253,4 +253,32 @@ public class CustomerServiceTest {
         Assertions.assertThat(sut3).isEqualTo(false);
         Assertions.assertThat(sut4).isEqualTo(false);
     }
+
+    @Test
+    public void addPointsByCustomerId_WithValidData_ReturnsVoid() {
+        Long points = 100L;
+        Long customerId = 1230L;
+        Customer persistedCustomer = new Customer(customerId, "499.130.480-60", "Maria", GenderEnum.FEMALE, LocalDate.of(1990, 1, 1), "maria@example.com", 100L, "http://example.com/photo.jpg");
+        Customer updatedCustomer = new Customer(customerId, "499.130.480-60", "Maria", GenderEnum.FEMALE, LocalDate.of(1990, 1, 1), "maria@example.com", 100L + points, "http://example.com/photo.jpg");
+        when(customerRepository.findById(customerId)).thenReturn(Optional.of(persistedCustomer));
+
+        this.customerService.addPointsByCustomerId(points, customerId);
+
+        verify(this.customerRepository, times(1)).findById(customerId);
+        verify(this.customerRepository, times(1)).save(updatedCustomer);
+    }
+
+    @Test
+    public void addPointsByCustomerId_WithInexistentId_ThrowsException() {
+        Long points = 100L;
+        Long customerId = 1230L;
+        Customer persistedCustomer = new Customer(customerId, "499.130.480-60", "Maria", GenderEnum.FEMALE, LocalDate.of(1990, 1, 1), "maria@example.com", 100L, "http://example.com/photo.jpg");
+        Customer updatedCustomer = new Customer(customerId, "499.130.480-60", "Maria", GenderEnum.FEMALE, LocalDate.of(1990, 1, 1), "maria@example.com", 100L + points, "http://example.com/photo.jpg");
+        when(customerRepository.findById(customerId)).thenReturn(Optional.empty());
+
+        Assertions.assertThatThrownBy(() -> this.customerService.addPointsByCustomerId(points, customerId)).isInstanceOf(EntityNotFoundException.class);
+
+        verify(this.customerRepository, times(1)).findById(customerId);
+        verify(this.customerRepository, times(0)).save(updatedCustomer);
+    }
 }

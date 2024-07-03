@@ -62,6 +62,13 @@ public class CustomerService {
         this.customerRepository.deleteById(id);
     }
 
+    @Transactional
+    public void addPointsByCustomerId(Long points, Long customerId) {
+        Customer customer = this.findById(customerId);
+        customer.setPoints(customer.getPoints() + points);
+        this.customerRepository.save(customer);
+    }
+
     public static boolean validateCpf(String cpf) {
         if (cpf == null)
             return false;
