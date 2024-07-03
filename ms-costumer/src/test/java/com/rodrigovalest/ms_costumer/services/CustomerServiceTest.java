@@ -109,7 +109,7 @@ public class CustomerServiceTest {
     public void findById_WithInvalidId_ThrowsException() {
         // Arrange
         Long id = 1L;
-        when(this.customerRepository.findById(id)).thenThrow(EntityNotFoundException.class);
+        when(this.customerRepository.findById(id)).thenReturn(Optional.empty());
 
         // Act
         Assertions.assertThatThrownBy(() -> this.customerService.findById(id)).isInstanceOf(EntityNotFoundException.class);
