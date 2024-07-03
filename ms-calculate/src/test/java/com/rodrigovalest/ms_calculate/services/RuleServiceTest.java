@@ -59,7 +59,7 @@ public class RuleServiceTest {
     public void findById_WithInexistentId_ThrowsException() {
         Long id = 100L;
         Rule rule = new Rule(id, "eletronics", 2L);
-        when(this.ruleRepository.findById(id)).thenThrow(EntityNotFoundException.class);
+        when(this.ruleRepository.findById(id)).thenReturn(Optional.empty());
 
         Assertions.assertThatThrownBy(() -> this.ruleService.findById(id)).isInstanceOf(EntityNotFoundException.class);
 

@@ -1,4 +1,4 @@
-package com.rodrigovalest.ms_payment.model.entities;
+package com.rodrigovalest.ms_payment.model;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
