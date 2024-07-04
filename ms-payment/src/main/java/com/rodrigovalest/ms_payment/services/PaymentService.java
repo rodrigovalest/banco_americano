@@ -3,7 +3,7 @@ package com.rodrigovalest.ms_payment.services;
 import com.rodrigovalest.ms_payment.exceptions.*;
 import com.rodrigovalest.ms_payment.integration.clients.CalculateClient;
 import com.rodrigovalest.ms_payment.integration.clients.CustomerClient;
-import com.rodrigovalest.ms_payment.integration.dtos.rabbitmq.PointsQueuePublisherMessageDto;
+import com.rodrigovalest.ms_payment.integration.dtos.rabbitmq.PointsQueueMessageDto;
 import com.rodrigovalest.ms_payment.integration.dtos.request.CalculateRequestDto;
 import com.rodrigovalest.ms_payment.integration.rabbitmq.PointsPublisher;
 import com.rodrigovalest.ms_payment.model.Payment;
@@ -54,7 +54,7 @@ public class PaymentService {
         }
 
         try {
-            this.pointsPublisher.sendPointsMessage(new PointsQueuePublisherMessageDto(payment.getCustomerId(), points));
+            this.pointsPublisher.sendPointsMessage(new PointsQueueMessageDto(payment.getCustomerId(), points));
         } catch (AmqpException e) {
             throw new RabbitMqMessagingException("Failed to send points message: " + e.getMessage());
         }

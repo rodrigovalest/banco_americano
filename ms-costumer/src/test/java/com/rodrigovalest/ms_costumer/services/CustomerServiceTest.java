@@ -1,9 +1,6 @@
 package com.rodrigovalest.ms_costumer.services;
 
-import com.rodrigovalest.ms_costumer.exceptions.CpfAlreadyRegisteredException;
-import com.rodrigovalest.ms_costumer.exceptions.EmailAlreadyRegistedException;
-import com.rodrigovalest.ms_costumer.exceptions.EntityNotFoundException;
-import com.rodrigovalest.ms_costumer.exceptions.InvalidCpfException;
+import com.rodrigovalest.ms_costumer.exceptions.*;
 import com.rodrigovalest.ms_costumer.models.entities.Customer;
 import com.rodrigovalest.ms_costumer.models.enums.GenderEnum;
 import com.rodrigovalest.ms_costumer.repositories.CustomerRepository;
@@ -26,17 +23,23 @@ public class CustomerServiceTest {
     @Mock
     private CustomerRepository customerRepository;
 
+    @Mock
+    private AWSService awsService;
+
     @InjectMocks
     private CustomerService customerService;
 
     @Test
     public void createCostumer_WithValidData_ReturnsCostumer() {
-        Customer customer = new Customer(1L, "499.130.480-60", "Maria", GenderEnum.FEMALE, LocalDate.of(1990, 1, 1), "maria@example.com", 100L, "http://example.com/photo.jpg");
+        String base64Photo = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9U";
+        String photoUrl = "http://something.com";
+        Customer customer = new Customer(null, "499.130.480-60", "Maria", GenderEnum.FEMALE, LocalDate.of(1990, 1, 1), "maria@example.com", 100L, null);
         when(this.customerRepository.existsByCpf(customer.getCpf())).thenReturn(false);
         when(this.customerRepository.existsByEmail(customer.getEmail())).thenReturn(false);
         when(this.customerRepository.save(any(Customer.class))).thenReturn(customer);
+        when(this.awsService.upload(base64Photo)).thenReturn(photoUrl);
 
-        Customer sut = this.customerService.create(customer);
+        Customer sut = this.customerService.create(customer, base64Photo);
 
         Assertions.assertThat(sut).isNotNull();
         Assertions.assertThat(sut.getId()).isEqualTo(customer.getId());
@@ -46,37 +49,73 @@ public class CustomerServiceTest {
         Assertions.assertThat(sut.getBirthdate()).isEqualTo(customer.getBirthdate());
         Assertions.assertThat(sut.getEmail()).isEqualTo(customer.getEmail());
         Assertions.assertThat(sut.getPoints()).isEqualTo(customer.getPoints());
-        Assertions.assertThat(sut.getUrlPhoto()).isEqualTo(customer.getUrlPhoto());
+        Assertions.assertThat(sut.getUrlPhoto()).isEqualTo(photoUrl);
 
         verify(this.customerRepository, times(1)).save(any(Customer.class));
     }
 
     @Test
     public void createCostumer_WithAlreadyRegisteredEmail_ThrowsException() {
-        Customer customer = new Customer(1L, "499.130.480-60", "Maria", GenderEnum.FEMALE, LocalDate.of(1990, 1, 1), "maria@example.com", 100L, "http://example.com/photo.jpg");
+        String base64Photo = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9U";
+        Customer customer = new Customer(null, "499.130.480-60", "Maria", GenderEnum.FEMALE, LocalDate.of(1990, 1, 1), "maria@example.com", 100L, null);
         when(this.customerRepository.existsByCpf(customer.getCpf())).thenReturn(false);
         when(this.customerRepository.existsByEmail(customer.getEmail())).thenReturn(true);
 
-        Assertions.assertThatThrownBy(() -> this.customerService.create(customer)).isInstanceOf(EmailAlreadyRegistedException.class);
+        Assertions.assertThatThrownBy(() -> this.customerService.create(customer, base64Photo)).isInstanceOf(EmailAlreadyRegistedException.class);
 
         verify(this.customerRepository, times(0)).save(any(Customer.class));
     }
 
     @Test
     public void createCostumer_WithAlreadyRegisteredCpf_ThrowsException() {
-        Customer customer = new Customer(1L, "499.130.480-60", "Maria", GenderEnum.FEMALE, LocalDate.of(1990, 1, 1), "maria@example.com", 100L, "http://example.com/photo.jpg");
+        String base64Photo = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9U";
+        Customer customer = new Customer(null, "499.130.480-60", "Maria", GenderEnum.FEMALE, LocalDate.of(1990, 1, 1), "maria@example.com", 100L, null);
         when(this.customerRepository.existsByCpf(customer.getCpf())).thenReturn(true);
 
-        Assertions.assertThatThrownBy(() -> this.customerService.create(customer)).isInstanceOf(CpfAlreadyRegisteredException.class);
+        Assertions.assertThatThrownBy(() -> this.customerService.create(customer, base64Photo)).isInstanceOf(CpfAlreadyRegisteredException.class);
 
         verify(this.customerRepository, times(0)).save(any(Customer.class));
     }
 
     @Test
     public void createCostumer_WithInvalidCpf_ThrowsException() {
-        Customer customer = new Customer(1L, "101.639.219-84", "Maria", GenderEnum.FEMALE, LocalDate.of(1990, 1, 1), "maria@example.com", 100L, "http://example.com/photo.jpg");
+        String base64Photo = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9U";
+        Customer customer = new Customer(null, "101.639.219-84", "Maria", GenderEnum.FEMALE, LocalDate.of(1990, 1, 1), "maria@example.com", 100L, null);
 
-        Assertions.assertThatThrownBy(() -> this.customerService.create(customer)).isInstanceOf(InvalidCpfException.class);
+        Assertions.assertThatThrownBy(() -> this.customerService.create(customer, base64Photo)).isInstanceOf(InvalidCpfException.class);
+
+        verify(this.customerRepository, times(0)).save(any(Customer.class));
+    }
+
+    @Test
+    public void createCostumer_WithAWSErrorExceptionInUploadingFile_ThrowsException() {
+        String base64Photo = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9U";
+        Customer customer = new Customer(null, "499.130.480-60", "Maria", GenderEnum.FEMALE, LocalDate.of(1990, 1, 1), "maria@example.com", 100L, null);
+        when(this.awsService.upload(base64Photo)).thenThrow(AWSErrorException.class);
+
+        Assertions.assertThatThrownBy(() -> this.customerService.create(customer, base64Photo)).isInstanceOf(AWSErrorException.class);
+
+        verify(this.customerRepository, times(0)).save(any(Customer.class));
+    }
+
+    @Test
+    public void createCostumer_WithFileConvertionExceptionInUploadingFile_ThrowsException() {
+        String base64Photo = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9U";
+        Customer customer = new Customer(null, "499.130.480-60", "Maria", GenderEnum.FEMALE, LocalDate.of(1990, 1, 1), "maria@example.com", 100L, null);
+        when(this.awsService.upload(base64Photo)).thenThrow(FileConvertionException.class);
+
+        Assertions.assertThatThrownBy(() -> this.customerService.create(customer, base64Photo)).isInstanceOf(FileConvertionException.class);
+
+        verify(this.customerRepository, times(0)).save(any(Customer.class));
+    }
+
+    @Test
+    public void createCostumer_WithFileSizeExceptionInUploadingFile_ThrowsException() {
+        String base64Photo = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9U";
+        Customer customer = new Customer(null, "499.130.480-60", "Maria", GenderEnum.FEMALE, LocalDate.of(1990, 1, 1), "maria@example.com", 100L, null);
+        when(this.awsService.upload(base64Photo)).thenThrow(FileSizeException.class);
+
+        Assertions.assertThatThrownBy(() -> this.customerService.create(customer, base64Photo)).isInstanceOf(FileSizeException.class);
 
         verify(this.customerRepository, times(0)).save(any(Customer.class));
     }
@@ -252,5 +291,33 @@ public class CustomerServiceTest {
         Assertions.assertThat(sut2).isEqualTo(false);
         Assertions.assertThat(sut3).isEqualTo(false);
         Assertions.assertThat(sut4).isEqualTo(false);
+    }
+
+    @Test
+    public void addPointsByCustomerId_WithValidData_ReturnsVoid() {
+        Long points = 100L;
+        Long customerId = 1230L;
+        Customer persistedCustomer = new Customer(customerId, "499.130.480-60", "Maria", GenderEnum.FEMALE, LocalDate.of(1990, 1, 1), "maria@example.com", 100L, "http://example.com/photo.jpg");
+        Customer updatedCustomer = new Customer(customerId, "499.130.480-60", "Maria", GenderEnum.FEMALE, LocalDate.of(1990, 1, 1), "maria@example.com", 100L + points, "http://example.com/photo.jpg");
+        when(customerRepository.findById(customerId)).thenReturn(Optional.of(persistedCustomer));
+
+        this.customerService.addPointsByCustomerId(points, customerId);
+
+        verify(this.customerRepository, times(1)).findById(customerId);
+        verify(this.customerRepository, times(1)).save(updatedCustomer);
+    }
+
+    @Test
+    public void addPointsByCustomerId_WithInexistentId_ThrowsException() {
+        Long points = 100L;
+        Long customerId = 1230L;
+        Customer persistedCustomer = new Customer(customerId, "499.130.480-60", "Maria", GenderEnum.FEMALE, LocalDate.of(1990, 1, 1), "maria@example.com", 100L, "http://example.com/photo.jpg");
+        Customer updatedCustomer = new Customer(customerId, "499.130.480-60", "Maria", GenderEnum.FEMALE, LocalDate.of(1990, 1, 1), "maria@example.com", 100L + points, "http://example.com/photo.jpg");
+        when(customerRepository.findById(customerId)).thenReturn(Optional.empty());
+
+        Assertions.assertThatThrownBy(() -> this.customerService.addPointsByCustomerId(points, customerId)).isInstanceOf(EntityNotFoundException.class);
+
+        verify(this.customerRepository, times(1)).findById(customerId);
+        verify(this.customerRepository, times(0)).save(updatedCustomer);
     }
 }

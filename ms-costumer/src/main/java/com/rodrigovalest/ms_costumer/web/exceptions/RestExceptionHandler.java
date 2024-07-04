@@ -1,9 +1,6 @@
 package com.rodrigovalest.ms_costumer.web.exceptions;
 
-import com.rodrigovalest.ms_costumer.exceptions.CpfAlreadyRegisteredException;
-import com.rodrigovalest.ms_costumer.exceptions.EmailAlreadyRegistedException;
-import com.rodrigovalest.ms_costumer.exceptions.EntityNotFoundException;
-import com.rodrigovalest.ms_costumer.exceptions.InvalidCpfException;
+import com.rodrigovalest.ms_costumer.exceptions.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -12,6 +9,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @Slf4j
 @RestControllerAdvice
@@ -75,6 +73,44 @@ public class RestExceptionHandler {
         RestErrorMessage restErrorMessage = new RestErrorMessage(HttpStatus.UNPROCESSABLE_ENTITY, e.getMessage());
         return ResponseEntity
                 .status(HttpStatus.UNPROCESSABLE_ENTITY)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(restErrorMessage);
+    }
+
+    @ExceptionHandler(AWSErrorException.class)
+    private ResponseEntity<RestErrorMessage> AWSErrorExceptionHandler(AWSErrorException e) {
+        RestErrorMessage restErrorMessage = new RestErrorMessage(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(restErrorMessage);
+    }
+
+    @ExceptionHandler(FileConvertionException.class)
+    private ResponseEntity<RestErrorMessage> fileConvertionExceptionHandler(FileConvertionException e) {
+        RestErrorMessage restErrorMessage = new RestErrorMessage(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(restErrorMessage);
+    }
+
+    @ExceptionHandler(FileSizeException.class)
+    private ResponseEntity<RestErrorMessage> fileSizeExceptionHandler(FileSizeException e) {
+        RestErrorMessage restErrorMessage = new RestErrorMessage(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(restErrorMessage);
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    private ResponseEntity<RestErrorMessage> noResourceFoundExceptionHandler(NoResourceFoundException e) {
+        RestErrorMessage restErrorMessage = new RestErrorMessage(
+                HttpStatus.NOT_FOUND, "resource not found");
+
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(restErrorMessage);
     }

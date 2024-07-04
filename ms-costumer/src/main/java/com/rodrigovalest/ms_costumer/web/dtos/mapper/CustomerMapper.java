@@ -34,7 +34,7 @@ public class CustomerMapper {
         return customer;
     }
 
-    public static CustomerResponseDto toDto(Customer customer) {
+    public static CustomerResponseDto toDto(Customer customer, String photo) {
         CustomerResponseDto customerResponseDto = new CustomerResponseDto();
         customerResponseDto.setCpf(customer.getCpf());
         customerResponseDto.setName(customer.getName());
@@ -47,7 +47,7 @@ public class CustomerMapper {
             customerResponseDto.setGender("feminino");
 
         customerResponseDto.setBirthdate(customer.getBirthdate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
-        customerResponseDto.setPhoto("MUDAR E COLOCAR O BASE 64 DEPOIS");
+        customerResponseDto.setPhoto(photo);
 
         return customerResponseDto;
     }

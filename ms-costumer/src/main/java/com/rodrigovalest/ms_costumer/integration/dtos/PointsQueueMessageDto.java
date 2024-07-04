@@ -1,4 +1,4 @@
-package com.rodrigovalest.ms_payment.integration.dtos.rabbitmq;
+package com.rodrigovalest.ms_costumer.integration.dtos;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,7 +9,8 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class PointsQueuePublisherMessageDto {
+public class PointsQueueMessageDto {
     private Long customerId;
     private Long points;
 }
+

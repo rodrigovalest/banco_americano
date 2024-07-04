@@ -3,7 +3,7 @@ package com.rodrigovalest.ms_payment.services;
 import com.rodrigovalest.ms_payment.exceptions.*;
 import com.rodrigovalest.ms_payment.integration.clients.CalculateClient;
 import com.rodrigovalest.ms_payment.integration.clients.CustomerClient;
-import com.rodrigovalest.ms_payment.integration.dtos.rabbitmq.PointsQueuePublisherMessageDto;
+import com.rodrigovalest.ms_payment.integration.dtos.rabbitmq.PointsQueueMessageDto;
 import com.rodrigovalest.ms_payment.integration.dtos.request.CalculateRequestDto;
 import com.rodrigovalest.ms_payment.integration.dtos.response.CalculateResponseDto;
 import com.rodrigovalest.ms_payment.integration.dtos.response.CustomerResponseDto;
@@ -116,7 +116,7 @@ public class PaymentServiceTest {
         when(this.calculateClient.calculate(any(CalculateRequestDto.class)))
                 .thenReturn(new CalculateResponseDto(1500L));
         doThrow(AmqpException.class)
-                .when(this.pointsPublisher).sendPointsMessage(any(PointsQueuePublisherMessageDto.class));
+                .when(this.pointsPublisher).sendPointsMessage(any(PointsQueueMessageDto.class));
 
         // Act & Assert
         Assertions.assertThatThrownBy(() -> this.paymentService.create(toCreatePayment))
@@ -127,7 +127,7 @@ public class PaymentServiceTest {
         verify(this.calculateClient, times(1))
                 .calculate(any(CalculateRequestDto.class));
         verify(this.pointsPublisher, times(1))
-                .sendPointsMessage(any(PointsQueuePublisherMessageDto.class));
+                .sendPointsMessage(any(PointsQueueMessageDto.class));
         verify(this.paymentRepository, times(0))
                 .save(toCreatePayment);
     }
@@ -148,7 +148,7 @@ public class PaymentServiceTest {
         verify(this.calculateClient, times(0))
                 .calculate(any(CalculateRequestDto.class));
         verify(this.pointsPublisher, times(0))
-                .sendPointsMessage(any(PointsQueuePublisherMessageDto.class));
+                .sendPointsMessage(any(PointsQueueMessageDto.class));
         verify(this.paymentRepository, times(0))
                 .save(toCreatePayment);
     }
@@ -171,7 +171,7 @@ public class PaymentServiceTest {
         verify(this.calculateClient, times(1))
                 .calculate(any(CalculateRequestDto.class));
         verify(this.pointsPublisher, times(0))
-                .sendPointsMessage(any(PointsQueuePublisherMessageDto.class));
+                .sendPointsMessage(any(PointsQueueMessageDto.class));
         verify(this.paymentRepository, times(0))
                 .save(toCreatePayment);
     }

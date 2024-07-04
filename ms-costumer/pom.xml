@@ -31,6 +31,7 @@
 		<java.version>17</java.version>
 		<jacoco.pluguin.version>0.8.12</jacoco.pluguin.version>
 		<springdoc.version>2.1.0</springdoc.version>
+		<aws-java-sdk-s3.version>1.12.751</aws-java-sdk-s3.version>
 	</properties>
 
 	<dependencies>
@@ -55,6 +56,15 @@
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
 			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-amqp</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.amazonaws</groupId>
+			<artifactId>aws-java-sdk-s3</artifactId>
+			<version>${aws-java-sdk-s3.version}</version>
 		</dependency>
 
 		<dependency>

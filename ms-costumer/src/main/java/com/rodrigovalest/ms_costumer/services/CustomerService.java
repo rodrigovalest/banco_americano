@@ -16,14 +16,20 @@ public class CustomerService {
     @Autowired
     private CustomerRepository customerRepository;
 
+    @Autowired
+    private AWSService awsService;
+
     @Transactional
-    public Customer create(Customer customer) {
+    public Customer create(Customer customer, String photo) {
         if (!CustomerService.validateCpf(customer.getCpf()))
             throw new InvalidCpfException("CPF is invalid");
         if (this.customerRepository.existsByCpf(customer.getCpf()))
             throw new CpfAlreadyRegisteredException("CPF already registered");
         if (this.customerRepository.existsByEmail(customer.getEmail()))
             throw new EmailAlreadyRegistedException("Email already registered");
+
+        String photoUrl = this.awsService.upload(photo);
+        customer.setUrlPhoto(photoUrl);
 
         return this.customerRepository.save(customer);
     }
@@ -60,6 +66,13 @@ public class CustomerService {
         if (!this.customerRepository.existsById(id))
             throw new EntityNotFoundException("Customer with id {" + id + "} not found");
         this.customerRepository.deleteById(id);
+    }
+
+    @Transactional
+    public void addPointsByCustomerId(Long points, Long customerId) {
+        Customer customer = this.findById(customerId);
+        customer.setPoints(customer.getPoints() + points);
+        this.customerRepository.save(customer);
     }
 
     public static boolean validateCpf(String cpf) {

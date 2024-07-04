@@ -63,7 +63,7 @@ public class CustomerMapperTest {
         Customer customer = new Customer(1L, "499.130.480-60", "Maria", GenderEnum.FEMALE, LocalDate.of(1990, 1, 1), "maria@example.com", 100L, "http://example.com/photo.jpg");
 
         // Act
-        CustomerResponseDto sut = CustomerMapper.toDto(customer);
+        CustomerResponseDto sut = CustomerMapper.toDto(customer, null);
 
         // Assert
         Assertions.assertThat(sut).isNotNull();
@@ -73,6 +73,7 @@ public class CustomerMapperTest {
         Assertions.assertThat(sut.getBirthdate()).isEqualTo("01/01/1990");
         Assertions.assertThat(sut.getGender()).isEqualTo("feminino");
         Assertions.assertThat(sut.getPoints()).isEqualTo(customer.getPoints());
+        Assertions.assertThat(sut.getPhoto()).isNull();
     }
 
     @Test
@@ -81,7 +82,7 @@ public class CustomerMapperTest {
         Customer customer = new Customer(1L, "499.130.480-60", "Roger", GenderEnum.MALE, LocalDate.of(1990, 1, 1), "maria@example.com", 100L, "http://example.com/photo.jpg");
 
         // Act
-        CustomerResponseDto sut = CustomerMapper.toDto(customer);
+        CustomerResponseDto sut = CustomerMapper.toDto(customer, null);
 
         // Assert
         Assertions.assertThat(sut).isNotNull();
@@ -91,6 +92,7 @@ public class CustomerMapperTest {
         Assertions.assertThat(sut.getBirthdate()).isEqualTo("01/01/1990");
         Assertions.assertThat(sut.getGender()).isEqualTo("masculino");
         Assertions.assertThat(sut.getPoints()).isEqualTo(customer.getPoints());
+        Assertions.assertThat(sut.getPhoto()).isNull();
     }
 
     @Test
