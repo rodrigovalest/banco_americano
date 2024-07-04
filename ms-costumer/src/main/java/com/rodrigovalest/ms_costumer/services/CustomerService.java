@@ -42,7 +42,7 @@ public class CustomerService {
     }
 
     @Transactional
-    public Customer update(Customer customer, Long id) {
+    public Customer update(Customer customer, Long id, String base64photo) {
         Customer persistedCustomer = this.findById(id);
 
         if (!CustomerService.validateCpf(customer.getCpf()))
@@ -51,6 +51,9 @@ public class CustomerService {
             throw new CpfAlreadyRegisteredException("CPF already registered");
         if (this.customerRepository.existsByEmail(customer.getEmail()) && !customer.getEmail().equals(persistedCustomer.getEmail()))
             throw new EmailAlreadyRegistedException("Email already registered");
+
+        String newPhotoUrl = this.awsService.update(persistedCustomer.getUrlPhoto(), base64photo);
+        persistedCustomer.setUrlPhoto(newPhotoUrl);
 
         persistedCustomer.setName(customer.getName());
         persistedCustomer.setGender(customer.getGender());
@@ -63,9 +66,9 @@ public class CustomerService {
 
     @Transactional
     public void deleteById(Long id) {
-        if (!this.customerRepository.existsById(id))
-            throw new EntityNotFoundException("Customer with id {" + id + "} not found");
-        this.customerRepository.deleteById(id);
+        Customer customer = this.findById(id);
+        this.awsService.delete(customer.getUrlPhoto());
+        this.customerRepository.delete(customer);
     }
 
     @Transactional

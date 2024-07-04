@@ -32,8 +32,8 @@ public class AWSService {
     @Autowired
     private AmazonS3 s3Instance;
 
-    public String upload(String base64String) {
-        byte[] decodedBytes = Base64.getDecoder().decode(base64String);
+    public String upload(String base64Photo) {
+        byte[] decodedBytes = Base64.getDecoder().decode(base64Photo);
 
         if (decodedBytes.length > 5 * 1024 * 1024)
             throw new FileSizeException("File size exceeds the maximum limit of 5MB");
@@ -80,6 +80,36 @@ public class AWSService {
         } catch (IOException e) {
             log.error("ERROR trying to download and convert file to base64: {}", e.getMessage());
             throw new FileConvertionException("ERROR trying to download and convert file to base64: " + e.getMessage());
+        }
+    }
+
+    public String update(String urlPhoto, String base64photo) {
+        String filename = urlPhoto.substring(urlPhoto.lastIndexOf("/") + 1);
+
+        try {
+            this.s3Instance.deleteObject(this.bucketName, filename);
+        } catch (AmazonS3Exception e) {
+            log.error("ERROR: Amazon Service Exception when deleting old file: {}", e.getMessage());
+            throw new AWSErrorException("ERROR: Amazon Service Exception when deleting old file: {" + e.getMessage() + "}");
+        } catch (SdkClientException e) {
+            log.error("ERROR: SDK Client Exception when deleting old file: {}", e.getMessage());
+            throw new AWSErrorException("SDK Client Exception when deleting old file: " + e.getMessage());
+        }
+
+        return this.upload(base64photo);
+    }
+
+    public void delete(String urlPhoto) {
+        String filename = urlPhoto.substring(urlPhoto.lastIndexOf("/") + 1);
+
+        try {
+            this.s3Instance.deleteObject(this.bucketName, filename);
+        } catch (AmazonS3Exception e) {
+            log.error("ERROR: Amazon Service Exception when deleting file: {}", e.getMessage());
+            throw new AWSErrorException("ERROR: Amazon Service Exception when deleting old file: {" + e.getMessage() + "}");
+        } catch (SdkClientException e) {
+            log.error("ERROR: SDK Client Exception when deleting file: {}", e.getMessage());
+            throw new AWSErrorException("SDK Client Exception when deleting old file: " + e.getMessage());
         }
     }
 }
