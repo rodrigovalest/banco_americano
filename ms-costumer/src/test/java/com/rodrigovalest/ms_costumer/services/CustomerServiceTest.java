@@ -161,15 +161,21 @@ public class CustomerServiceTest {
     public void updateCustomer_WithValidData_ReturnsUpdatedCustomer() {
         // Arrange
         Long id = 100L;
-        Customer toUpdateCustomer = new Customer(null, "499.130.480-60", "Tonio Silveira", GenderEnum.MALE, LocalDate.of(1990, 1, 1), "tonio@example.com", 100L, "http://example.com/photo.jpg");
-        Customer persistedCustomer = new Customer(id, "499.130.480-60", "Tonio", GenderEnum.MALE, LocalDate.of(1990, 1, 1), "tonio@example.com", 100L, "http://example.com/photo.jpg");
-        Customer updatedCustomer = new Customer(id, "499.130.480-60", "Tonio Silveira", GenderEnum.MALE, LocalDate.of(1990, 1, 1), "tonio@example.com", 100L, "http://example.com/photo.jpg");
+        String base64Photo = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9U";
+        String newPhotoUrl = "http://example.com/newphoto.jpg";
+        String oldPhotoUrl = "http://example.com/newphoto.jpg";
+        Customer toUpdateCustomer = new Customer(null, "499.130.480-60", "Tonio Silveira", GenderEnum.MALE, LocalDate.of(1990, 1, 1), "tonio@example.com", 100L, null);
+        Customer persistedCustomer = new Customer(id, "499.130.480-60", "Tonio", GenderEnum.MALE, LocalDate.of(1990, 1, 1), "tonio@example.com", 100L, oldPhotoUrl);
+        Customer updatedCustomer = new Customer(id, toUpdateCustomer.getCpf(), toUpdateCustomer.getName(), toUpdateCustomer.getGender(), toUpdateCustomer.getBirthdate(), toUpdateCustomer.getEmail(), toUpdateCustomer.getPoints(), newPhotoUrl);
 
         when(this.customerRepository.findById(id)).thenReturn(Optional.of(persistedCustomer));
+        when(this.customerRepository.existsByCpf(toUpdateCustomer.getCpf())).thenReturn(false);
+        when(this.customerRepository.existsByEmail(toUpdateCustomer.getEmail())).thenReturn(false);
+        when(this.awsService.update(oldPhotoUrl, base64Photo)).thenReturn(newPhotoUrl);
         when(this.customerRepository.save(updatedCustomer)).thenReturn(updatedCustomer);
 
         // Act
-        Customer sut = this.customerService.update(toUpdateCustomer, id);
+        Customer sut = this.customerService.update(toUpdateCustomer, id, base64Photo);
 
         // Assert
         Assertions.assertThat(sut).isNotNull();
@@ -180,83 +186,187 @@ public class CustomerServiceTest {
         Assertions.assertThat(sut.getPoints()).isEqualTo(toUpdateCustomer.getPoints());
         Assertions.assertThat(sut.getBirthdate()).isEqualTo(toUpdateCustomer.getBirthdate());
         Assertions.assertThat(sut.getGender()).isEqualTo(toUpdateCustomer.getGender());
+        Assertions.assertThat(sut.getUrlPhoto()).isEqualTo(newPhotoUrl);
 
         verify(this.customerRepository, times(1)).findById(id);
+        verify(this.customerRepository, times(1)).existsByCpf(toUpdateCustomer.getCpf());
+        verify(this.customerRepository, times(1)).existsByEmail(toUpdateCustomer.getEmail());
+        verify(this.awsService, times(1)).update(oldPhotoUrl, base64Photo);
         verify(this.customerRepository, times(1)).save(updatedCustomer);
     }
 
     @Test
     public void updateCustomer_WithInexistentId_ThrowsException() {
         Long id = 100L;
+        String base64Photo = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9U";
         Customer toUpdateCustomer = new Customer(null, "499.130.480-60", "Tonio Silveira", GenderEnum.MALE, LocalDate.of(1990, 1, 1), "tonio@example.com", 100L, "http://example.com/photo.jpg");
-        when(this.customerRepository.findById(id)).thenThrow(EntityNotFoundException.class);
+        when(this.customerRepository.findById(id)).thenReturn(Optional.empty());
 
-        Assertions.assertThatThrownBy(() -> this.customerService.update(toUpdateCustomer, id)).isInstanceOf(EntityNotFoundException.class);
+        Assertions.assertThatThrownBy(() -> this.customerService.update(toUpdateCustomer, id, base64Photo)).isInstanceOf(EntityNotFoundException.class);
 
         verify(this.customerRepository, times(1)).findById(id);
+        verify(this.customerRepository, times(0)).existsByCpf(anyString());
+        verify(this.customerRepository, times(0)).existsByEmail(anyString());
+        verify(this.awsService, times(0)).update(anyString(), anyString());
+        verify(this.customerRepository, times(0)).save(any(Customer.class));
     }
 
     @Test
     public void updateCustomer_WithInvalidCpf_ThrowsException() {
         Long id = 100L;
+        String base64Photo = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9U";
         Customer toUpdateCustomer = new Customer(null, "101.639.219-84", "Tonio Silveira", GenderEnum.MALE, LocalDate.of(1990, 1, 1), "tonio@example.com", 100L, "http://example.com/photo.jpg");
         Customer persistedCustomer = new Customer(id, "499.130.480-60", "Tonio", GenderEnum.MALE, LocalDate.of(1990, 1, 1), "tonio@example.com", 100L, "http://example.com/photo.jpg");
         when(this.customerRepository.findById(id)).thenReturn(Optional.of(persistedCustomer));
 
-        Assertions.assertThatThrownBy(() -> this.customerService.update(toUpdateCustomer, id)).isInstanceOf(InvalidCpfException.class);
+        Assertions.assertThatThrownBy(() -> this.customerService.update(toUpdateCustomer, id, base64Photo)).isInstanceOf(InvalidCpfException.class);
 
         verify(this.customerRepository, times(1)).findById(id);
+        verify(this.customerRepository, times(0)).existsByCpf(anyString());
+        verify(this.customerRepository, times(0)).existsByEmail(anyString());
+        verify(this.awsService, times(0)).update(anyString(), anyString());
+        verify(this.customerRepository, times(0)).save(any(Customer.class));
     }
 
     @Test
     public void updateCustomer_WithAlreadyExistentEmail_ThrowsException() {
         Long id = 100L;
+        String base64Photo = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9U";
         Customer toUpdateCustomer = new Customer(null, "499.130.480-60", "Tonio Silveira", GenderEnum.MALE, LocalDate.of(1990, 1, 1), "emailalreadyused@example.com", 100L, "http://example.com/photo.jpg");
         Customer persistedCustomer = new Customer(id, "499.130.480-60", "Tonio", GenderEnum.MALE, LocalDate.of(1990, 1, 1), "tonio@example.com", 100L, "http://example.com/photo.jpg");
         when(this.customerRepository.findById(id)).thenReturn(Optional.of(persistedCustomer));
         when(this.customerRepository.existsByCpf(toUpdateCustomer.getCpf())).thenReturn(false);
         when(this.customerRepository.existsByEmail(toUpdateCustomer.getEmail())).thenReturn(true);
 
-        Assertions.assertThatThrownBy(() -> this.customerService.update(toUpdateCustomer, id)).isInstanceOf(EmailAlreadyRegistedException.class);
+        Assertions.assertThatThrownBy(() -> this.customerService.update(toUpdateCustomer, id, base64Photo)).isInstanceOf(EmailAlreadyRegistedException.class);
 
         verify(this.customerRepository, times(1)).findById(id);
+        verify(this.customerRepository, times(1)).existsByCpf(toUpdateCustomer.getCpf());
+        verify(this.customerRepository, times(1)).existsByEmail(toUpdateCustomer.getEmail());
+        verify(this.customerRepository, times(0)).save(any(Customer.class));
+        verify(this.awsService, times(0)).update(anyString(), anyString());
     }
 
     @Test
     public void updateCustomer_WithAlreadyExistentCpf_ThrowsException() {
         Long id = 100L;
+        String base64Photo = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9U";
         Customer toUpdateCustomer = new Customer(null, "499.130.480-60", "Tonio Silveira", GenderEnum.MALE, LocalDate.of(1990, 1, 1), "emailalreadyused@example.com", 100L, "http://example.com/photo.jpg");
         Customer persistedCustomer = new Customer(id, "212.280.439-49", "Tonio", GenderEnum.MALE, LocalDate.of(1990, 1, 1), "tonio@example.com", 100L, "http://example.com/photo.jpg");
         when(this.customerRepository.findById(id)).thenReturn(Optional.of(persistedCustomer));
         when(this.customerRepository.existsByCpf(toUpdateCustomer.getCpf())).thenReturn(true);
 
-        Assertions.assertThatThrownBy(() -> this.customerService.update(toUpdateCustomer, id)).isInstanceOf(CpfAlreadyRegisteredException.class);
+        Assertions.assertThatThrownBy(() -> this.customerService.update(toUpdateCustomer, id, base64Photo)).isInstanceOf(CpfAlreadyRegisteredException.class);
 
         verify(this.customerRepository, times(1)).findById(id);
+        verify(this.customerRepository, times(1)).existsByCpf(toUpdateCustomer.getCpf());
+        verify(this.customerRepository, times(0)).existsByEmail(toUpdateCustomer.getEmail());
+        verify(this.customerRepository, times(0)).save(any(Customer.class));
+        verify(this.awsService, times(0)).update(anyString(), anyString());
+    }
+
+    @Test
+    public void updateCustomer_WithAWSErrorException_ThrowsException() {
+        Long id = 100L;
+        String base64Photo = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9U";
+        String oldPhotoUrl = "http://example.com/newphoto.jpg";
+        Customer toUpdateCustomer = new Customer(null, "499.130.480-60", "Tonio Silveira", GenderEnum.MALE, LocalDate.of(1990, 1, 1), "tonio@example.com", 100L, null);
+        Customer persistedCustomer = new Customer(id, "499.130.480-60", "Tonio", GenderEnum.MALE, LocalDate.of(1990, 1, 1), "tonio@example.com", 100L, oldPhotoUrl);
+
+        when(this.customerRepository.findById(id)).thenReturn(Optional.of(persistedCustomer));
+        when(this.customerRepository.existsByCpf(toUpdateCustomer.getCpf())).thenReturn(false);
+        when(this.customerRepository.existsByEmail(toUpdateCustomer.getEmail())).thenReturn(false);
+        when(this.awsService.update(oldPhotoUrl, base64Photo)).thenThrow(AWSErrorException.class);
+
+        Assertions.assertThatThrownBy(() -> this.customerService.update(toUpdateCustomer, id, base64Photo)).isInstanceOf(AWSErrorException.class);
+
+        verify(this.customerRepository, times(1)).findById(id);
+        verify(this.customerRepository, times(1)).existsByCpf(toUpdateCustomer.getCpf());
+        verify(this.customerRepository, times(1)).existsByEmail(toUpdateCustomer.getEmail());
+        verify(this.awsService, times(1)).update(oldPhotoUrl, base64Photo);
+        verify(this.customerRepository, times(0)).save(any(Customer.class));
+    }
+
+    @Test
+    public void updateCustomer_WithFileConvertionException_ThrowsException() {
+        Long id = 100L;
+        String base64Photo = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9U";
+        String oldPhotoUrl = "http://example.com/newphoto.jpg";
+        Customer toUpdateCustomer = new Customer(null, "499.130.480-60", "Tonio Silveira", GenderEnum.MALE, LocalDate.of(1990, 1, 1), "tonio@example.com", 100L, null);
+        Customer persistedCustomer = new Customer(id, "499.130.480-60", "Tonio", GenderEnum.MALE, LocalDate.of(1990, 1, 1), "tonio@example.com", 100L, oldPhotoUrl);
+
+        when(this.customerRepository.findById(id)).thenReturn(Optional.of(persistedCustomer));
+        when(this.customerRepository.existsByCpf(toUpdateCustomer.getCpf())).thenReturn(false);
+        when(this.customerRepository.existsByEmail(toUpdateCustomer.getEmail())).thenReturn(false);
+        when(this.awsService.update(oldPhotoUrl, base64Photo)).thenThrow(FileConvertionException.class);
+
+        Assertions.assertThatThrownBy(() -> this.customerService.update(toUpdateCustomer, id, base64Photo)).isInstanceOf(FileConvertionException.class);
+
+        verify(this.customerRepository, times(1)).findById(id);
+        verify(this.customerRepository, times(1)).existsByCpf(toUpdateCustomer.getCpf());
+        verify(this.customerRepository, times(1)).existsByEmail(toUpdateCustomer.getEmail());
+        verify(this.awsService, times(1)).update(oldPhotoUrl, base64Photo);
+        verify(this.customerRepository, times(0)).save(any(Customer.class));
+    }
+
+    @Test
+    public void updateCustomer_WithFileSizeException_ThrowsException() {
+        Long id = 100L;
+        String base64Photo = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9U";
+        String oldPhotoUrl = "http://example.com/newphoto.jpg";
+        Customer toUpdateCustomer = new Customer(null, "499.130.480-60", "Tonio Silveira", GenderEnum.MALE, LocalDate.of(1990, 1, 1), "tonio@example.com", 100L, null);
+        Customer persistedCustomer = new Customer(id, "499.130.480-60", "Tonio", GenderEnum.MALE, LocalDate.of(1990, 1, 1), "tonio@example.com", 100L, oldPhotoUrl);
+
+        when(this.customerRepository.findById(id)).thenReturn(Optional.of(persistedCustomer));
+        when(this.customerRepository.existsByCpf(toUpdateCustomer.getCpf())).thenReturn(false);
+        when(this.customerRepository.existsByEmail(toUpdateCustomer.getEmail())).thenReturn(false);
+        when(this.awsService.update(oldPhotoUrl, base64Photo)).thenThrow(FileSizeException.class);
+
+        Assertions.assertThatThrownBy(() -> this.customerService.update(toUpdateCustomer, id, base64Photo)).isInstanceOf(FileSizeException.class);
+
+        verify(this.customerRepository, times(1)).findById(id);
+        verify(this.customerRepository, times(1)).existsByCpf(toUpdateCustomer.getCpf());
+        verify(this.customerRepository, times(1)).existsByEmail(toUpdateCustomer.getEmail());
+        verify(this.awsService, times(1)).update(oldPhotoUrl, base64Photo);
+        verify(this.customerRepository, times(0)).save(any(Customer.class));
     }
 
     @Test
     public void deleteById_WithValidId_ThrowsException() {
         // Arrange
         Long id = 100L;
-        when(this.customerRepository.existsById(id)).thenReturn(true);
+        Customer customer = new Customer(1230L, "499.130.480-60", "Maria", GenderEnum.FEMALE, LocalDate.of(1990, 1, 1), "maria@example.com", 100L, "someurl.com");
+        when(this.customerRepository.findById(id)).thenReturn(Optional.of(customer));
 
         // Act
         this.customerService.deleteById(id);
 
         // Assert
-        verify(this.customerRepository, times(1)).existsById(id);
-        verify(this.customerRepository, times(1)).deleteById(id);
+        verify(this.customerRepository, times(1)).findById(id);
+        verify(this.customerRepository, times(1)).delete(customer);
     }
 
     @Test
     public void deleteById_WithInvalidId_ThrowsException() {
         Long id = 100L;
-        when(this.customerRepository.existsById(id)).thenReturn(false);
+        when(this.customerRepository.findById(id)).thenReturn(Optional.empty());
 
         Assertions.assertThatThrownBy(() -> this.customerService.deleteById(id)).isInstanceOf(EntityNotFoundException.class);
 
-        verify(this.customerRepository, times(1)).existsById(id);
+        verify(this.customerRepository, times(1)).findById(id);
+        verify(this.customerRepository, times(0)).deleteById(id);
+    }
+
+    @Test
+    public void deleteById_WithAWSErrorExceptionThrowsException() {
+        Long id = 100L;
+        Customer customer = new Customer(1230L, "499.130.480-60", "Maria", GenderEnum.FEMALE, LocalDate.of(1990, 1, 1), "maria@example.com", 100L, "someurl.com");
+        when(this.customerRepository.findById(id)).thenReturn(Optional.of(customer));
+        doThrow(new AWSErrorException("AWS Error")).when(this.awsService).delete(anyString());
+
+        Assertions.assertThatThrownBy(() -> this.customerService.deleteById(id)).isInstanceOf(AWSErrorException.class);
+
+        verify(this.customerRepository, times(1)).findById(id);
         verify(this.customerRepository, times(0)).deleteById(id);
     }
 

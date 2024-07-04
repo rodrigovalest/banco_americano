@@ -1,15 +1,13 @@
 package com.rodrigovalest.ms_costumer.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rodrigovalest.ms_costumer.exceptions.CpfAlreadyRegisteredException;
-import com.rodrigovalest.ms_costumer.exceptions.EmailAlreadyRegistedException;
-import com.rodrigovalest.ms_costumer.exceptions.EntityNotFoundException;
-import com.rodrigovalest.ms_costumer.exceptions.InvalidCpfException;
+import com.rodrigovalest.ms_costumer.exceptions.*;
 import com.rodrigovalest.ms_costumer.models.entities.Customer;
 import com.rodrigovalest.ms_costumer.models.enums.GenderEnum;
 import com.rodrigovalest.ms_costumer.services.AWSService;
 import com.rodrigovalest.ms_costumer.services.CustomerService;
 import com.rodrigovalest.ms_costumer.web.controllers.CustomerController;
+import com.rodrigovalest.ms_costumer.web.dtos.mapper.CustomerMapper;
 import com.rodrigovalest.ms_costumer.web.dtos.request.CreateCustomerDto;
 import com.rodrigovalest.ms_costumer.web.dtos.request.UpdateCustomerDto;
 import org.junit.jupiter.api.Test;
@@ -133,6 +131,23 @@ public class CustomerControllerTest {
     }
 
     @Test
+    public void createCustomer_WithAWSErrorException_Throws500InternalServerError() throws Exception {
+        // Arrange
+        CreateCustomerDto createCustomerDto = new CreateCustomerDto("499.130.480-60", "Roger", "Masculino", "11/10/1990", "roger@email.com", "photobase64");
+        Customer customer = new Customer(0L, "499.130.480-60", "Roger", GenderEnum.MALE, LocalDate.of(1990, 10, 11), "roger@email.com", 0L, "http://somephoto.com");
+
+        when(this.customerService.create(any(Customer.class), anyString())).thenThrow(AWSErrorException.class);
+
+        // Act
+        ResultActions response = this.mockMvc.perform(post("/v1/customers")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(createCustomerDto)));
+
+        // Assert
+        response.andExpect(status().isInternalServerError());
+    }
+
+    @Test
     public void findById_WithValidId_Return200AndCustomer() throws Exception {
         // Arrange
         Long id = 0L;
@@ -170,12 +185,14 @@ public class CustomerControllerTest {
     public void update_WithValidData_Returns200AndUpdatedCustomer() throws Exception {
         // Arrange
         Long id = 0L;
-        UpdateCustomerDto updateCustomerDto = new UpdateCustomerDto("499.130.480-60", "new customer", "masculino", "11/10/1990", "newcustomer@email.com", "photobase64");
+        String base64Photo = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9U";
+        UpdateCustomerDto updateCustomerDto = new UpdateCustomerDto("499.130.480-60", "new customer", "masculino", "11/10/1990", "newcustomer@email.com", base64Photo);
         Customer persistedCustomer = new Customer(id, "499.130.480-60", "old customer", GenderEnum.MALE, LocalDate.of(1990, 10, 11), "oldcustomer@email.com", 100L, "https://oldcustomerimage.com");
         Customer updatedCustomer = new Customer(id, "499.130.480-60", "new customer", GenderEnum.MALE, LocalDate.of(1990, 10, 11), "newcustomer@email.com", 100L, "https://newcustomerimage.com");
 
         when(this.customerService.findById(id)).thenReturn(persistedCustomer);
-        when(this.customerService.update(any(Customer.class), anyLong())).thenReturn(updatedCustomer);
+        when(this.customerService.update(CustomerMapper.toModel(updateCustomerDto), id, base64Photo)).thenReturn(updatedCustomer);
+        when(this.awsService.download(updatedCustomer.getUrlPhoto())).thenReturn(base64Photo);
 
         // Act
         ResultActions response = this.mockMvc.perform(put("/v1/customers/" + id)
@@ -189,16 +206,21 @@ public class CustomerControllerTest {
                 .andExpect(jsonPath("$.gender").value("masculino"))
                 .andExpect(jsonPath("$.birthdate").value("11/10/1990"))
                 .andExpect(jsonPath("$.email").value(updateCustomerDto.getEmail()))
+                .andExpect(jsonPath("$.photo").value(base64Photo))
                 .andExpect(jsonPath("$.points").isNotEmpty());
+
+        verify(this.customerService, times(1)).update(CustomerMapper.toModel(updateCustomerDto), id, base64Photo);
+        verify(this.awsService, times(1)).download(updatedCustomer.getUrlPhoto());
     }
 
     @Test
     public void update_WithInexistentId_Throws404NotFoundException() throws Exception {
         // Arrange
         Long id = 0L;
-        UpdateCustomerDto updateCustomerDto = new UpdateCustomerDto("499.130.480-60", "new customer", "masculino", "11/10/1990", "newcustomer@email.com", "photobase64");
+        String base64Photo = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9U";
+        UpdateCustomerDto updateCustomerDto = new UpdateCustomerDto("499.130.480-60", "new customer", "masculino", "11/10/1990", "newcustomer@email.com", base64Photo);
 
-        when(this.customerService.update(any(Customer.class), anyLong())).thenThrow(EntityNotFoundException.class);
+        when(this.customerService.update(CustomerMapper.toModel(updateCustomerDto), id, base64Photo)).thenThrow(EntityNotFoundException.class);
 
         // Act
         ResultActions response = this.mockMvc.perform(put("/v1/customers/" + id)
@@ -207,15 +229,19 @@ public class CustomerControllerTest {
 
         // Assert
         response.andExpect(status().isNotFound());
+
+        verify(this.customerService, times(1)).update(CustomerMapper.toModel(updateCustomerDto), id, base64Photo);
+        verify(this.awsService, times(0)).download(anyString());
     }
 
     @Test
     public void update_WithInvalidCpf_Throws422UnprocessableEntity() throws Exception {
         // Arrange
         Long id = 0L;
-        UpdateCustomerDto updateCustomerDto = new UpdateCustomerDto("499.130.000-60", "new customer", "masculino", "11/10/1990", "newcustomer@email.com", "photobase64");
+        String base64Photo = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9U";
+        UpdateCustomerDto updateCustomerDto = new UpdateCustomerDto("499.130.480-60", "new customer", "masculino", "11/10/1990", "newcustomer@email.com", base64Photo);
 
-        when(this.customerService.update(any(Customer.class), anyLong())).thenThrow(InvalidCpfException.class);
+        when(this.customerService.update(CustomerMapper.toModel(updateCustomerDto), id, base64Photo)).thenThrow(InvalidCpfException.class);
 
         // Act
         ResultActions response = this.mockMvc.perform(put("/v1/customers/" + id)
@@ -224,15 +250,19 @@ public class CustomerControllerTest {
 
         // Assert
         response.andExpect(status().isUnprocessableEntity());
+
+        verify(this.customerService, times(1)).update(CustomerMapper.toModel(updateCustomerDto), id, base64Photo);
+        verify(this.awsService, times(0)).download(anyString());
     }
 
     @Test
     public void update_WithCpfAlreadyRegistered_Throws422UnprocessableEntity() throws Exception {
         // Arrange
         Long id = 0L;
-        UpdateCustomerDto updateCustomerDto = new UpdateCustomerDto("499.130.000-60", "new customer", "masculino", "11/10/1990", "newcustomer@email.com", "photobase64");
+        String base64Photo = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9U";
+        UpdateCustomerDto updateCustomerDto = new UpdateCustomerDto("499.130.480-60", "new customer", "masculino", "11/10/1990", "newcustomer@email.com", base64Photo);
 
-        when(this.customerService.update(any(Customer.class), anyLong())).thenThrow(CpfAlreadyRegisteredException.class);
+        when(this.customerService.update(CustomerMapper.toModel(updateCustomerDto), id, base64Photo)).thenThrow(CpfAlreadyRegisteredException.class);
 
         // Act
         ResultActions response = this.mockMvc.perform(put("/v1/customers/" + id)
@@ -241,15 +271,19 @@ public class CustomerControllerTest {
 
         // Assert
         response.andExpect(status().isUnprocessableEntity());
+
+        verify(this.customerService, times(1)).update(CustomerMapper.toModel(updateCustomerDto), id, base64Photo);
+        verify(this.awsService, times(0)).download(anyString());
     }
 
     @Test
     public void update_WithEmailAlreadyRegistered_Throws422UnprocessableEntity() throws Exception {
         // Arrange
         Long id = 0L;
-        UpdateCustomerDto updateCustomerDto = new UpdateCustomerDto("499.130.000-60", "new customer", "masculino", "11/10/1990", "newcustomer@email.com", "photobase64");
+        String base64Photo = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9U";
+        UpdateCustomerDto updateCustomerDto = new UpdateCustomerDto("499.130.480-60", "new customer", "masculino", "11/10/1990", "newcustomer@email.com", base64Photo);
 
-        when(this.customerService.update(any(Customer.class), anyLong())).thenThrow(EmailAlreadyRegistedException.class);
+        when(this.customerService.update(CustomerMapper.toModel(updateCustomerDto), id, base64Photo)).thenThrow(EmailAlreadyRegistedException.class);
 
         // Act
         ResultActions response = this.mockMvc.perform(put("/v1/customers/" + id)
@@ -258,6 +292,9 @@ public class CustomerControllerTest {
 
         // Assert
         response.andExpect(status().isUnprocessableEntity());
+
+        verify(this.customerService, times(1)).update(CustomerMapper.toModel(updateCustomerDto), id, base64Photo);
+        verify(this.awsService, times(0)).download(anyString());
     }
 
     @Test
@@ -273,6 +310,76 @@ public class CustomerControllerTest {
 
         // Assert
         response.andExpect(status().isUnprocessableEntity());
+
+        verify(this.customerService, times(0)).update(any(Customer.class), anyLong(), anyString());
+        verify(this.awsService, times(0)).download(anyString());
+    }
+
+    @Test
+    public void update_WithAWSException_Throws500InternalServerError() throws Exception {
+        // Arrange
+        Long id = 0L;
+        String base64Photo = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9U";
+        UpdateCustomerDto updateCustomerDto = new UpdateCustomerDto("499.130.480-60", "new customer", "masculino", "11/10/1990", "newcustomer@email.com", base64Photo);
+        Customer updatedCustomer = new Customer(id, "499.130.480-60", "new customer", GenderEnum.MALE, LocalDate.of(1990, 10, 11), "newcustomer@email.com", 100L, "https://newcustomerimage.com");
+
+        when(this.customerService.update(CustomerMapper.toModel(updateCustomerDto), id, base64Photo)).thenReturn(updatedCustomer);
+        when(this.awsService.download(updatedCustomer.getUrlPhoto())).thenThrow(AWSErrorException.class);
+
+        // Act
+        ResultActions response = this.mockMvc.perform(put("/v1/customers/" + id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateCustomerDto)));
+
+        // Assert
+        response.andExpect(status().isInternalServerError());
+
+        verify(this.customerService, times(1)).update(CustomerMapper.toModel(updateCustomerDto), id, base64Photo);
+        verify(this.awsService, times(1)).download(updatedCustomer.getUrlPhoto());
+    }
+
+    @Test
+    public void update_WithFileConvertionException_Throws422UnprocessableEntity() throws Exception {
+        // Arrange
+        Long id = 0L;
+        String base64Photo = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9U";
+        UpdateCustomerDto updateCustomerDto = new UpdateCustomerDto("499.130.480-60", "new customer", "masculino", "11/10/1990", "newcustomer@email.com", base64Photo);
+        Customer updatedCustomer = new Customer(id, "499.130.480-60", "new customer", GenderEnum.MALE, LocalDate.of(1990, 10, 11), "newcustomer@email.com", 100L, "https://newcustomerimage.com");
+
+        when(this.customerService.update(CustomerMapper.toModel(updateCustomerDto), id, base64Photo)).thenThrow(FileConvertionException.class);
+
+        // Act
+        ResultActions response = this.mockMvc.perform(put("/v1/customers/" + id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateCustomerDto)));
+
+        // Assert
+        response.andExpect(status().isUnprocessableEntity());
+
+        verify(this.customerService, times(1)).update(CustomerMapper.toModel(updateCustomerDto), id, base64Photo);
+        verify(this.awsService, times(0)).download(updatedCustomer.getUrlPhoto());
+    }
+
+    @Test
+    public void update_WithFileSizeException_Throws413PayloadTooLarge() throws Exception {
+        // Arrange
+        Long id = 0L;
+        String base64Photo = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9UAAAAC0lEQVR42mNkYAAAAAYAAjCB0C9U";
+        UpdateCustomerDto updateCustomerDto = new UpdateCustomerDto("499.130.480-60", "new customer", "masculino", "11/10/1990", "newcustomer@email.com", base64Photo);
+        Customer updatedCustomer = new Customer(id, "499.130.480-60", "new customer", GenderEnum.MALE, LocalDate.of(1990, 10, 11), "newcustomer@email.com", 100L, "https://newcustomerimage.com");
+
+        when(this.customerService.update(CustomerMapper.toModel(updateCustomerDto), id, base64Photo)).thenThrow(FileSizeException.class);
+
+        // Act
+        ResultActions response = this.mockMvc.perform(put("/v1/customers/" + id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateCustomerDto)));
+
+        // Assert
+        response.andExpect(status().isPayloadTooLarge());
+
+        verify(this.customerService, times(1)).update(CustomerMapper.toModel(updateCustomerDto), id, base64Photo);
+        verify(this.awsService, times(0)).download(updatedCustomer.getUrlPhoto());
     }
 
     @Test

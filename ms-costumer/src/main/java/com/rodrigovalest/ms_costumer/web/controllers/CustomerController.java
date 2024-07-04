@@ -42,11 +42,7 @@ public class CustomerController {
     @PostMapping
     public ResponseEntity<?> create(@Valid @RequestBody CreateCustomerDto createCustomerDto) {
         Customer newCustomer = this.customerService.create(CustomerMapper.toModel(createCustomerDto), createCustomerDto.getPhoto());
-        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
-                .path("/{id}")
-                .buildAndExpand(newCustomer.getId())
-                .toUri();
-
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(newCustomer.getId()).toUri();
         return ResponseEntity.created(location).build();
     }
 
@@ -61,7 +57,8 @@ public class CustomerController {
     @GetMapping("/{id}")
     public ResponseEntity<?> findById(@PathVariable("id") Long customerId) {
         Customer customer = this.customerService.findById(customerId);
-        return ResponseEntity.ok(CustomerMapper.toDto(customer, null));
+        String base64Photo = this.awsService.download(customer.getUrlPhoto());
+        return ResponseEntity.ok(CustomerMapper.toDto(customer, base64Photo));
     }
 
     @Operation(
@@ -76,8 +73,9 @@ public class CustomerController {
             })
     @PutMapping("/{id}")
     public ResponseEntity<?> update(@PathVariable("id") Long customerId, @Valid @RequestBody UpdateCustomerDto updateCustomerDto) {
-        Customer updatedCustomer = this.customerService.update(CustomerMapper.toModel(updateCustomerDto), customerId);
-        return ResponseEntity.ok(CustomerMapper.toDto(updatedCustomer, null));
+        Customer updatedCustomer = this.customerService.update(CustomerMapper.toModel(updateCustomerDto), customerId, updateCustomerDto.getPhoto());
+        String base64Photo = this.awsService.download(updatedCustomer.getUrlPhoto());
+        return ResponseEntity.ok(CustomerMapper.toDto(updatedCustomer, base64Photo));
     }
 
     @Operation(

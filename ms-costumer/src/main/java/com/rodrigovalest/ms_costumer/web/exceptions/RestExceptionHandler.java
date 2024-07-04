@@ -88,18 +88,18 @@ public class RestExceptionHandler {
 
     @ExceptionHandler(FileConvertionException.class)
     private ResponseEntity<RestErrorMessage> fileConvertionExceptionHandler(FileConvertionException e) {
-        RestErrorMessage restErrorMessage = new RestErrorMessage(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        RestErrorMessage restErrorMessage = new RestErrorMessage(HttpStatus.UNPROCESSABLE_ENTITY, e.getMessage());
         return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .status(HttpStatus.UNPROCESSABLE_ENTITY)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(restErrorMessage);
     }
 
     @ExceptionHandler(FileSizeException.class)
     private ResponseEntity<RestErrorMessage> fileSizeExceptionHandler(FileSizeException e) {
-        RestErrorMessage restErrorMessage = new RestErrorMessage(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        RestErrorMessage restErrorMessage = new RestErrorMessage(HttpStatus.PAYLOAD_TOO_LARGE, e.getMessage());
         return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .status(HttpStatus.PAYLOAD_TOO_LARGE)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(restErrorMessage);
     }
