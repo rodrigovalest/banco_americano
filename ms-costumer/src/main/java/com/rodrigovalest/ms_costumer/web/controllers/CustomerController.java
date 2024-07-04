@@ -92,10 +92,4 @@ public class CustomerController {
         this.customerService.deleteById(customerId);
         return ResponseEntity.noContent().build();
     }
-
-    @GetMapping("/upload")
-    public ResponseEntity<?> upload(@RequestBody String photo) {
-        String filename = this.awsService.upload(photo);
-        return ResponseEntity.ok(filename);
-    }
 }
