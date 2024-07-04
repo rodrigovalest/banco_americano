@@ -16,14 +16,20 @@ public class CustomerService {
     @Autowired
     private CustomerRepository customerRepository;
 
+    @Autowired
+    private AWSService awsService;
+
     @Transactional
-    public Customer create(Customer customer) {
+    public Customer create(Customer customer, String photo) {
         if (!CustomerService.validateCpf(customer.getCpf()))
             throw new InvalidCpfException("CPF is invalid");
         if (this.customerRepository.existsByCpf(customer.getCpf()))
             throw new CpfAlreadyRegisteredException("CPF already registered");
         if (this.customerRepository.existsByEmail(customer.getEmail()))
             throw new EmailAlreadyRegistedException("Email already registered");
+
+        String photoUrl = this.awsService.upload(photo);
+        customer.setUrlPhoto(photoUrl);
 
         return this.customerRepository.save(customer);
     }

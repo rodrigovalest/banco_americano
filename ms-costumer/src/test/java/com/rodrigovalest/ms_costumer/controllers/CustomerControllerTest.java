@@ -7,6 +7,7 @@ import com.rodrigovalest.ms_costumer.exceptions.EntityNotFoundException;
 import com.rodrigovalest.ms_costumer.exceptions.InvalidCpfException;
 import com.rodrigovalest.ms_costumer.models.entities.Customer;
 import com.rodrigovalest.ms_costumer.models.enums.GenderEnum;
+import com.rodrigovalest.ms_costumer.services.AWSService;
 import com.rodrigovalest.ms_costumer.services.CustomerService;
 import com.rodrigovalest.ms_costumer.web.controllers.CustomerController;
 import com.rodrigovalest.ms_costumer.web.dtos.request.CreateCustomerDto;
@@ -35,6 +36,9 @@ public class CustomerControllerTest {
     @MockBean
     private CustomerService customerService;
 
+    @MockBean
+    private AWSService awsService;
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -45,9 +49,9 @@ public class CustomerControllerTest {
     public void createCustomer_WithValidData_Return201Created() throws Exception {
         // Arrange
         CreateCustomerDto createCustomerDto = new CreateCustomerDto("499.130.480-60", "Roger", "Masculino", "11/10/1990", "roger@email.com", "photobase64");
-        Customer customer = new Customer(0L, "499.130.480-60", "Roger", GenderEnum.MALE, LocalDate.of(1990, 10, 11), "roger@email.com", 0L, "photobase64");
+        Customer customer = new Customer(0L, "499.130.480-60", "Roger", GenderEnum.MALE, LocalDate.of(1990, 10, 11), "roger@email.com", 0L, "http://somephoto.com");
 
-        when(this.customerService.create(any(Customer.class))).thenReturn(customer);
+        when(this.customerService.create(any(Customer.class), anyString())).thenReturn(customer);
 
         // Act
         ResultActions response = this.mockMvc.perform(post("/v1/customers")
