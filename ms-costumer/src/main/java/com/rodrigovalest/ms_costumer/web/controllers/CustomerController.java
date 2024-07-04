@@ -37,6 +37,8 @@ public class CustomerController {
             responses = {
                     @ApiResponse(responseCode = "201", description = "CREATED"),
                     @ApiResponse(responseCode = "422", description = "UNPROCESSABLE ENTITY",
+                            content = @Content(mediaType = " application/json;charset=UTF-8", schema = @Schema(implementation = RestErrorMessage.class))),
+                    @ApiResponse(responseCode = "413", description = "PAYLOAD TOO LARGE",
                             content = @Content(mediaType = " application/json;charset=UTF-8", schema = @Schema(implementation = RestErrorMessage.class)))
             })
     @PostMapping
@@ -69,6 +71,8 @@ public class CustomerController {
                     @ApiResponse(responseCode = "422", description = "UNPROCESSABLE ENTITY",
                             content = @Content(mediaType = " application/json;charset=UTF-8", schema = @Schema(implementation = RestErrorMessage.class))),
                     @ApiResponse(responseCode = "404", description = "NOT FOUND",
+                            content = @Content(mediaType = " application/json;charset=UTF-8", schema = @Schema(implementation = RestErrorMessage.class))),
+                    @ApiResponse(responseCode = "413", description = "PAYLOAD TOO LARGE",
                             content = @Content(mediaType = " application/json;charset=UTF-8", schema = @Schema(implementation = RestErrorMessage.class)))
             })
     @PutMapping("/{id}")
