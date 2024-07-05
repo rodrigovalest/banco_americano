@@ -1,6 +1,6 @@
 package com.rodrigovalest.ms_calculate.mappers;
 
-import com.rodrigovalest.ms_calculate.models.entities.Rule;
+import com.rodrigovalest.ms_calculate.models.Rule;
 import com.rodrigovalest.ms_calculate.web.dtos.mapper.RuleMapper;
 import com.rodrigovalest.ms_calculate.web.dtos.request.CreateRuleDto;
 import com.rodrigovalest.ms_calculate.web.dtos.request.UpdateRuleDto;

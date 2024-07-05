@@ -9,28 +9,22 @@ import com.rodrigovalest.ms_payment.integration.rabbitmq.PointsPublisher;
 import com.rodrigovalest.ms_payment.model.Payment;
 import com.rodrigovalest.ms_payment.repositories.PaymentRepository;
 import feign.FeignException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.AmqpException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
 
+@RequiredArgsConstructor
 @Service
 public class PaymentService {
 
-    @Autowired
-    private PaymentRepository paymentRepository;
-
-    @Autowired
-    private CalculateClient calculateClient;
-
-    @Autowired
-    private CustomerClient customerClient;
-
-    @Autowired
-    private PointsPublisher pointsPublisher;
+    private final PaymentRepository paymentRepository;
+    private final CalculateClient calculateClient;
+    private final CustomerClient customerClient;
+    private final PointsPublisher pointsPublisher;
 
     @Transactional
     public Payment create(Payment payment) {

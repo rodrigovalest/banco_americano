@@ -6,18 +6,17 @@ import com.rodrigovalest.ms_costumer.exceptions.EntityNotFoundException;
 import com.rodrigovalest.ms_costumer.exceptions.InvalidCpfException;
 import com.rodrigovalest.ms_costumer.models.entities.Customer;
 import com.rodrigovalest.ms_costumer.repositories.CustomerRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@RequiredArgsConstructor
 @Service
 public class CustomerService {
 
-    @Autowired
-    private CustomerRepository customerRepository;
-
-    @Autowired
-    private AWSService awsService;
+    private final CustomerRepository customerRepository;
+    private final AWSService awsService;
 
     @Transactional
     public Customer create(Customer customer, String photo) {

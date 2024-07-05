@@ -1,6 +1,6 @@
 package com.rodrigovalest.ms_calculate.repositories;
 
-import com.rodrigovalest.ms_calculate.models.entities.Rule;
+import com.rodrigovalest.ms_calculate.models.Rule;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

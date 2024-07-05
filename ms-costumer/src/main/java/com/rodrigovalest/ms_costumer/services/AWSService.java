@@ -9,6 +9,7 @@ import com.amazonaws.services.s3.model.S3Object;
 import com.rodrigovalest.ms_costumer.exceptions.FileConvertionException;
 import com.rodrigovalest.ms_costumer.exceptions.FileSizeException;
 import com.rodrigovalest.ms_costumer.exceptions.AWSErrorException;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,15 +23,14 @@ import java.net.URL;
 import java.util.Base64;
 import java.util.UUID;
 
+@RequiredArgsConstructor
 @Service
 @Slf4j
 public class AWSService {
 
     @Value("${aws.bucket.name}")
     private String bucketName;
-
-    @Autowired
-    private AmazonS3 s3Instance;
+    private final AmazonS3 s3Instance;
 
     public String upload(String base64Photo) {
         byte[] decodedBytes = Base64.getDecoder().decode(base64Photo);

@@ -2,7 +2,6 @@ package com.rodrigovalest.ms_calculate.web.exceptions;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
-import lombok.ToString;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;

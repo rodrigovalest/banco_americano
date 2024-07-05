@@ -1,6 +1,6 @@
 package com.rodrigovalest.ms_calculate.web.controllers;
 
-import com.rodrigovalest.ms_calculate.models.entities.Rule;
+import com.rodrigovalest.ms_calculate.models.Rule;
 import com.rodrigovalest.ms_calculate.services.RuleService;
 import com.rodrigovalest.ms_calculate.web.dtos.mapper.RuleMapper;
 import com.rodrigovalest.ms_calculate.web.dtos.request.CreateRuleDto;
@@ -12,7 +12,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -20,12 +20,12 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.net.URI;
 
 @Tag(name = "Rules", description = "Feature to create, read, update and delete rules")
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/v1/rules")
 public class RuleController {
 
-    @Autowired
-    private RuleService ruleService;
+    private final RuleService ruleService;
 
     @Operation(
             description = "creates a new rule",

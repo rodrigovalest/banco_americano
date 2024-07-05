@@ -1,15 +1,15 @@
 package com.rodrigovalest.ms_calculate.services;
 
-import com.rodrigovalest.ms_calculate.models.entities.Rule;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.rodrigovalest.ms_calculate.models.Rule;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@RequiredArgsConstructor
 @Service
 public class CalculateService {
 
-    @Autowired
-    private RuleService ruleService;
+    private final RuleService ruleService;
 
     @Transactional(readOnly = true)
     public Long calculate(Long ruleId, Long value) {

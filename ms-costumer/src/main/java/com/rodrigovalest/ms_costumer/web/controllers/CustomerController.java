@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,15 +23,13 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.net.URI;
 
 @Tag(name = "Customer", description = "Feature to create, read, update and delete customers")
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/v1/customers")
 public class CustomerController {
 
-    @Autowired
-    private CustomerService customerService;
-
-    @Autowired
-    private AWSService awsService;
+    private final CustomerService customerService;
+    private final AWSService awsService;
 
     @Operation(
             description = "creates a new customer",

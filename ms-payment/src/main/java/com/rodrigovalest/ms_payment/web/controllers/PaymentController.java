@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,12 +24,12 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Tag(name = "Payment", description = "Feature to create, get by id and get by customer payments")
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/v1/payments")
 public class PaymentController {
 
-    @Autowired
-    private PaymentService paymentService;
+    private final PaymentService paymentService;
 
     @Operation(
             description = "creates a new payment",

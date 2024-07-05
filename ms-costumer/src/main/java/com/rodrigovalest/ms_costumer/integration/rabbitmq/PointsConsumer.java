@@ -5,20 +5,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rodrigovalest.ms_costumer.exceptions.JsonToDtoConvertException;
 import com.rodrigovalest.ms_costumer.integration.dtos.PointsQueueMessageDto;
 import com.rodrigovalest.ms_costumer.services.CustomerService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+@RequiredArgsConstructor
 @Component
 @Slf4j
 public class PointsConsumer {
 
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @Autowired
-    private CustomerService customerService;
+    private final ObjectMapper objectMapper;
+    private final CustomerService customerService;
 
     @RabbitListener(queues = "${rabbitmq.queue.name}")
     public void handlePointsMessage(String message) {
