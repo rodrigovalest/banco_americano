@@ -180,4 +180,10 @@ public class RuleControllerTest {
         response.andExpect(status().isNotFound());
         verify(this.ruleService, times(1)).deleteById(id);
     }
+
+    @Test
+    public void routeNotFound_ShouldThrowResourceNotFound() throws Exception {
+        ResultActions response = this.mockMvc.perform(get("/inexistentroute"));
+        response.andExpect(status().isNotFound());
+    }
 }

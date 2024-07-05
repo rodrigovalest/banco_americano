@@ -53,4 +53,10 @@ public class RuleMapperTest {
         Assertions.assertThat(sut.getCategory()).isEqualTo(updateRuleDto.getCategory());
         Assertions.assertThat(sut.getParity()).isEqualTo(updateRuleDto.getParity());
     }
+
+    @Test
+    public void ruleMapperConstructor_ShouldInstantiate() {
+        RuleMapper sut = new RuleMapper();
+        Assertions.assertThat(sut).isNotNull();
+    }
 }
