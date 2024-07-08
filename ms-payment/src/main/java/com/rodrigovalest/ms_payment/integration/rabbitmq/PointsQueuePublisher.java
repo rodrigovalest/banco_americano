@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class PointsPublisher {
+public class PointsQueuePublisher {
 
     private final RabbitTemplate rabbitTemplate;
     private final Queue pointsQueue;

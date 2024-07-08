@@ -10,4 +10,8 @@ class MsPaymentApplicationTests {
 	void contextLoads() {
 	}
 
+	@Test
+	public void main_ShouldInitializeApplication() {
+		MsPaymentApplication.main(new String[]{});
+	}
 }

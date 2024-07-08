@@ -7,7 +7,7 @@ import com.rodrigovalest.ms_payment.integration.dtos.rabbitmq.PointsQueueMessage
 import com.rodrigovalest.ms_payment.integration.dtos.request.CalculateRequestDto;
 import com.rodrigovalest.ms_payment.integration.dtos.response.CalculateResponseDto;
 import com.rodrigovalest.ms_payment.integration.dtos.response.CustomerResponseDto;
-import com.rodrigovalest.ms_payment.integration.rabbitmq.PointsPublisher;
+import com.rodrigovalest.ms_payment.integration.rabbitmq.PointsQueuePublisher;
 import com.rodrigovalest.ms_payment.model.Payment;
 import com.rodrigovalest.ms_payment.repositories.PaymentRepository;
 import feign.FeignException;
@@ -41,7 +41,7 @@ public class PaymentServiceTest {
     private CalculateClient calculateClient;
 
     @Mock
-    private PointsPublisher pointsPublisher;
+    private PointsQueuePublisher pointsQueuePublisher;
 
     @InjectMocks
     private PaymentService paymentService;
@@ -116,7 +116,7 @@ public class PaymentServiceTest {
         when(this.calculateClient.calculate(any(CalculateRequestDto.class)))
                 .thenReturn(new CalculateResponseDto(1500L));
         doThrow(AmqpException.class)
-                .when(this.pointsPublisher).sendPointsMessage(any(PointsQueueMessageDto.class));
+                .when(this.pointsQueuePublisher).sendPointsMessage(any(PointsQueueMessageDto.class));
 
         // Act & Assert
         Assertions.assertThatThrownBy(() -> this.paymentService.create(toCreatePayment))
@@ -126,7 +126,7 @@ public class PaymentServiceTest {
                 .getCustomerById(anyLong());
         verify(this.calculateClient, times(1))
                 .calculate(any(CalculateRequestDto.class));
-        verify(this.pointsPublisher, times(1))
+        verify(this.pointsQueuePublisher, times(1))
                 .sendPointsMessage(any(PointsQueueMessageDto.class));
         verify(this.paymentRepository, times(0))
                 .save(toCreatePayment);
@@ -147,7 +147,7 @@ public class PaymentServiceTest {
                 .getCustomerById(anyLong());
         verify(this.calculateClient, times(0))
                 .calculate(any(CalculateRequestDto.class));
-        verify(this.pointsPublisher, times(0))
+        verify(this.pointsQueuePublisher, times(0))
                 .sendPointsMessage(any(PointsQueueMessageDto.class));
         verify(this.paymentRepository, times(0))
                 .save(toCreatePayment);
@@ -170,7 +170,7 @@ public class PaymentServiceTest {
                 .getCustomerById(anyLong());
         verify(this.calculateClient, times(1))
                 .calculate(any(CalculateRequestDto.class));
-        verify(this.pointsPublisher, times(0))
+        verify(this.pointsQueuePublisher, times(0))
                 .sendPointsMessage(any(PointsQueueMessageDto.class));
         verify(this.paymentRepository, times(0))
                 .save(toCreatePayment);

@@ -5,7 +5,7 @@ import com.rodrigovalest.ms_payment.integration.clients.CalculateClient;
 import com.rodrigovalest.ms_payment.integration.clients.CustomerClient;
 import com.rodrigovalest.ms_payment.integration.dtos.rabbitmq.PointsQueueMessageDto;
 import com.rodrigovalest.ms_payment.integration.dtos.request.CalculateRequestDto;
-import com.rodrigovalest.ms_payment.integration.rabbitmq.PointsPublisher;
+import com.rodrigovalest.ms_payment.integration.rabbitmq.PointsQueuePublisher;
 import com.rodrigovalest.ms_payment.model.Payment;
 import com.rodrigovalest.ms_payment.repositories.PaymentRepository;
 import feign.FeignException;
@@ -24,7 +24,7 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final CalculateClient calculateClient;
     private final CustomerClient customerClient;
-    private final PointsPublisher pointsPublisher;
+    private final PointsQueuePublisher pointsQueuePublisher;
 
     @Transactional
     public Payment create(Payment payment) {
@@ -48,7 +48,7 @@ public class PaymentService {
         }
 
         try {
-            this.pointsPublisher.sendPointsMessage(new PointsQueueMessageDto(payment.getCustomerId(), points));
+            this.pointsQueuePublisher.sendPointsMessage(new PointsQueueMessageDto(payment.getCustomerId(), points));
         } catch (AmqpException e) {
             throw new RabbitMqMessagingException("Failed to send points message: " + e.getMessage());
         }

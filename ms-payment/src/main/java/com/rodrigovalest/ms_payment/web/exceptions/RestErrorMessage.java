@@ -17,8 +17,6 @@ public class RestErrorMessage {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private Map<String, String> errors;
 
-    public RestErrorMessage() {}
-
     public RestErrorMessage(HttpStatus status, String message) {
         this.status = status.value();
         this.message = message;
