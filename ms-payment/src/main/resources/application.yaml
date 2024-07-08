@@ -1,0 +1,36 @@
+spring:
+  application:
+    name: ms-payment
+
+  config:
+    import: env.properties
+
+  datasource:
+    url: jdbc:mysql://${DB_URL}:${DB_PORT}/${DB_NAME}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+  rabbitmq:
+    host: ${RABBITMQ_HOST}
+    port: ${RABBITMQ_PORT}
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PASSWORD}
+
+server:
+  port: 18002
+
+feign:
+  client:
+    customer:
+      url: ${MS_CUSTOMER_URL}
+    calculate:
+      url: ${MS_CALCULATE_URL}
+
+rabbitmq:
+  queue:
+    name: ${RABBITMQ_QUEUE}

@@ -1,0 +1,38 @@
+spring:
+  application:
+    name: ms-costumer
+
+  config:
+    import: env.properties
+
+  datasource:
+    url: jdbc:mysql://${DB_URL}:${DB_PORT}/${DB_NAME}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+  rabbitmq:
+    host: ${RABBITMQ_HOST}
+    port: ${RABBITMQ_PORT}
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PASSWORD}
+
+server:
+  port: 18001
+
+aws:
+  bucket:
+    name: ${AWS_S3_BUCKET_NAME}
+  credentials:
+    access-key: ${AWS_ACCESS_KEY_ID}
+    secret-key: ${AWS_SECRET_ACCESS_KEY}
+    session-token: ${AWS_SESSION_TOKEN}
+  region: ${AWS_REGION}
+
+rabbitmq:
+  queue:
+    name: ${RABBITMQ_QUEUE}
