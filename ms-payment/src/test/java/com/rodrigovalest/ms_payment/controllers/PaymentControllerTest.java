@@ -183,4 +183,10 @@ public class PaymentControllerTest {
                 .andExpect(jsonPath("$[3].total").value(payment4.getTotal()))
                 .andExpect(jsonPath("$[3].createdDate").value(payment4.getCreatedDate().toString()));
     }
+
+    @Test
+    public void routeNotFound_ShouldThrowResourceNotFound() throws Exception {
+        ResultActions response = this.mockMvc.perform(get("/inexistentroute"));
+        response.andExpect(status().isNotFound());
+    }
 }

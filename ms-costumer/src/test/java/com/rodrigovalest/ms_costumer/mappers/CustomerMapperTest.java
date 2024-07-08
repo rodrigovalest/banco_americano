@@ -146,4 +146,10 @@ public class CustomerMapperTest {
         Assertions.assertThat(sut.getGender()).isEqualTo(GenderEnum.FEMALE);
         Assertions.assertThat(sut.getPoints()).isEqualTo(null);
     }
+
+    @Test
+    public void customerMapperConstructor_ShouldInstantiate() {
+        CustomerMapper sut = new CustomerMapper();
+        Assertions.assertThat(sut).isNotNull();
+    }
 }

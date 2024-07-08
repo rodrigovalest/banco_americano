@@ -2,7 +2,7 @@ package com.rodrigovalest.ms_calculate.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rodrigovalest.ms_calculate.exceptions.EntityNotFoundException;
-import com.rodrigovalest.ms_calculate.models.entities.Rule;
+import com.rodrigovalest.ms_calculate.models.Rule;
 import com.rodrigovalest.ms_calculate.services.RuleService;
 import com.rodrigovalest.ms_calculate.web.controllers.RuleController;
 import com.rodrigovalest.ms_calculate.web.dtos.request.CreateRuleDto;
@@ -112,7 +112,9 @@ public class RuleControllerTest {
                 .content(this.objectMapper.writeValueAsString(updateRuleDto)));
 
         // Assert
-        response.andExpect(status().isNoContent());
+        response.andExpect(status().isOk())
+                .andExpect(jsonPath("$.parity").value(updateRuleDto.getParity()))
+                .andExpect(jsonPath("$.category").value(updateRuleDto.getCategory()));
         verify(this.ruleService, times(1)).update(toUpdateRule, id);
     }
 
@@ -177,5 +179,11 @@ public class RuleControllerTest {
         // Assert
         response.andExpect(status().isNotFound());
         verify(this.ruleService, times(1)).deleteById(id);
+    }
+
+    @Test
+    public void routeNotFound_ShouldThrowResourceNotFound() throws Exception {
+        ResultActions response = this.mockMvc.perform(get("/inexistentroute"));
+        response.andExpect(status().isNotFound());
     }
 }

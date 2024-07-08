@@ -1,4 +1,4 @@
-package com.rodrigovalest.ms_calculate.models.entities;
+package com.rodrigovalest.ms_calculate.models;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

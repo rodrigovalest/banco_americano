@@ -1,7 +1,7 @@
 package com.rodrigovalest.ms_calculate.services;
 
 import com.rodrigovalest.ms_calculate.exceptions.EntityNotFoundException;
-import com.rodrigovalest.ms_calculate.models.entities.Rule;
+import com.rodrigovalest.ms_calculate.models.Rule;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

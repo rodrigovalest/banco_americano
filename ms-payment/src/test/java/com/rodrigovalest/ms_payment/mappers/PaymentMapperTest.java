@@ -43,4 +43,10 @@ public class PaymentMapperTest {
         Assertions.assertThat(sut.getCustomerId()).isEqualTo(payment.getCustomerId());
         Assertions.assertThat(sut.getTotal()).isEqualTo(payment.getTotal());
     }
+
+    @Test
+    public void paymentMapperConstructor_ShouldInstantiate() {
+        PaymentMapper sut = new PaymentMapper();
+        Assertions.assertThat(sut).isNotNull();
+    }
 }

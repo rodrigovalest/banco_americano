@@ -409,4 +409,24 @@ public class CustomerControllerTest {
         response.andExpect(status().isNotFound());
         verify(this.customerService, times(1)).deleteById(id);
     }
+
+    @Test
+    public void routeNotFound_ShouldThrowResourceNotFound() throws Exception {
+        ResultActions response = this.mockMvc.perform(get("/inexistentroute"));
+        response.andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void uncoveredExceptionThrowingRuntimeException_Returns500InternalServerError() throws Exception {
+        // Arrange
+        Long id = 1000L;
+        doThrow(new RuntimeException("uncovered error")).when(this.customerService).deleteById(id);
+
+        // Act
+        ResultActions response = this.mockMvc.perform(delete("/v1/customers/" + id));
+
+        // Assert
+        response.andExpect(status().isInternalServerError());
+        verify(this.customerService, times(1)).deleteById(id);
+    }
 }

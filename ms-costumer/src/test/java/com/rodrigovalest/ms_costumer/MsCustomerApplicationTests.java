@@ -10,4 +10,8 @@ class MsCustomerApplicationTests {
 	void contextLoads() {
 	}
 
+	@Test
+	public void main_ShouldInitializeApplication() {
+		MsCostumerApplication.main(new String[]{});
+	}
 }

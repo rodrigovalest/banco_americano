@@ -10,4 +10,8 @@ class MsCalculateApplicationTests {
 	void contextLoads() {
 	}
 
+	@Test
+	public void main_ShouldInitializeApplication() {
+		MsCalculateApplication.main(new String[]{});
+	}
 }

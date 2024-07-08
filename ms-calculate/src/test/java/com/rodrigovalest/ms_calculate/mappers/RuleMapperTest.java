@@ -1,6 +1,6 @@
 package com.rodrigovalest.ms_calculate.mappers;
 
-import com.rodrigovalest.ms_calculate.models.entities.Rule;
+import com.rodrigovalest.ms_calculate.models.Rule;
 import com.rodrigovalest.ms_calculate.web.dtos.mapper.RuleMapper;
 import com.rodrigovalest.ms_calculate.web.dtos.request.CreateRuleDto;
 import com.rodrigovalest.ms_calculate.web.dtos.request.UpdateRuleDto;
@@ -52,5 +52,11 @@ public class RuleMapperTest {
         Assertions.assertThat(sut.getId()).isEqualTo(null);
         Assertions.assertThat(sut.getCategory()).isEqualTo(updateRuleDto.getCategory());
         Assertions.assertThat(sut.getParity()).isEqualTo(updateRuleDto.getParity());
+    }
+
+    @Test
+    public void ruleMapperConstructor_ShouldInstantiate() {
+        RuleMapper sut = new RuleMapper();
+        Assertions.assertThat(sut).isNotNull();
     }
 }
