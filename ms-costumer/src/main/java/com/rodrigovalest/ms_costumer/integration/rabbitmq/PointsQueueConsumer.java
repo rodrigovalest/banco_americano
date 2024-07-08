@@ -8,13 +8,12 @@ import com.rodrigovalest.ms_costumer.services.CustomerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @RequiredArgsConstructor
 @Component
 @Slf4j
-public class PointsConsumer {
+public class PointsQueueConsumer {
 
     private final ObjectMapper objectMapper;
     private final CustomerService customerService;

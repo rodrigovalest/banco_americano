@@ -9,9 +9,9 @@ import com.amazonaws.services.s3.model.S3Object;
 import com.rodrigovalest.ms_costumer.exceptions.FileConvertionException;
 import com.rodrigovalest.ms_costumer.exceptions.FileSizeException;
 import com.rodrigovalest.ms_costumer.exceptions.AWSErrorException;
+import com.rodrigovalest.ms_costumer.utils.NameGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Base64;
-import java.util.UUID;
 
 @RequiredArgsConstructor
 @Service
@@ -41,13 +40,13 @@ public class AWSService {
         ObjectMetadata metadata = new ObjectMetadata();
         metadata.setContentLength(decodedBytes.length);
 
-        String filename = System.currentTimeMillis() + "__" + UUID.randomUUID().toString() + ".jpg";
+        String filename = NameGenerator.generate() + ".jpg";
 
         try (ByteArrayInputStream inputStream = new ByteArrayInputStream(decodedBytes)) {
             this.s3Instance.putObject(
                     new PutObjectRequest(this.bucketName, filename, inputStream, metadata)
             );
-            URL s3Url = s3Instance.getUrl(bucketName, filename);
+            URL s3Url = s3Instance.getUrl(this.bucketName, filename);
             return s3Url.toString();
         } catch (IOException e) {
             log.info("ERROR: IOException: {}", e.getMessage());
@@ -64,7 +63,7 @@ public class AWSService {
     public String download(String urlPhoto) {
         String filename = urlPhoto.substring(urlPhoto.lastIndexOf("/") + 1);
 
-        S3Object s3Object = s3Instance.getObject(bucketName, filename);
+        S3Object s3Object = this.s3Instance.getObject(bucketName, filename);
         try (InputStream inputStream = s3Object.getObjectContent();
              ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
 
