@@ -258,24 +258,4 @@ public class AWSServiceTest {
         verify(this.s3Instance, times(1)).deleteObject(any(), eq(filename));
         verify(this.awsService, times(1)).upload(base64Photo);
     }
-
-//    @Test
-//    public void download_WithValidData_ReturnsBase64PhotoInString() throws Exception {
-//        // Arrange
-//        String urlPhoto = "https://example.com/randomphotoname.jpg";
-//        String filename = "randomphotoname.jpg";
-//        S3Object s3Object = new S3Object();
-//        S3ObjectInputStream s3ObjectInputStream = new S3ObjectInputStream(new ByteArrayInputStream("image-data".getBytes()), null);
-//        s3Object.setObjectContent(s3ObjectInputStream);
-//        when(this.s3Instance.getObject(anyString(), anyString())).thenReturn(s3Object);
-//
-//        // Act
-//        String base64Photo = awsService.download(urlPhoto);
-//
-//        // Assert
-//        Assertions.assertThat(base64Photo).isNotNull();
-//        Assertions.assertThat(base64Photo).isEqualTo(Base64.getEncoder().encodeToString("image-data".getBytes()));
-//
-//        verify(this.s3Instance, times(1)).getObject(anyString(), eq(filename));
-//    }
 }
